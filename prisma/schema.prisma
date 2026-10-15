@@ -1,6 +1,10 @@
-# Prisma Schema — Andalus Studio
-# Este archivo define el modelo de datos completo.
-# Requiere PostgreSQL en entorno real.
+// =====================================================================
+// ANDALUS CREATIVE WORLD — Prisma Schema (FASE 00)
+// PostgreSQL. Solo modelos con necesidad real en Fase 00.
+// Modelos futuros (Character, Screenplay, Scene, Shot, MediaAsset,
+// RenderJob, PublicProfile, Festival, Submission...) se documentan
+// en docs/FASE00_BASE_DATOS.md y NO se crean todavia.
+// =====================================================================
 
 generator client {
   provider = "prisma-client-js"
@@ -11,458 +15,261 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ═══════════════════════════════════════════
-// IDENTIDAD Y ACCESO
-// ═══════════════════════════════════════════
+// ---------- IDENTIDAD / AUTENTICACION ----------
 
 model User {
-  id                String    @id @default(uuid())
-  email             String    @unique
-  emailVerifiedAt   DateTime?
-  passwordHash      String
-  displayName       String
-  role              String    @default("USER") // USER, STAFF, ADMIN
-  status            String    @default("PENDING_VERIFICATION") // PENDING_VERIFICATION, ACTIVE, SUSPENDED, DISABLED
-  avatarUrl         String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  lastLoginAt       DateTime?
-  deletedAt         DateTime?
+  id              String    @id @default(uuid())
+  email           String    @unique
+  emailLower      String    @unique
+  passwordHash    String?
+  displayName     String    @default("")
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  sessions            Session[]
-  emailVerifications  EmailVerification[]
-  passwordResets      PasswordReset[]
-  memberships         Membership[]
-  auditEvents         AuditEvent[]
-  loginAttempts       LoginAttempt[]
-  securityEvents      SecurityEvent[]
+  identities     ExternalIdentity[]
+  sessions       Session[]
+  projects       Project[]
+  wallet         CreditWallet?
+  securityEvents SecurityEvent[]
+  emailTokens    EmailVerificationToken[]
+  resetTokens    PasswordResetToken[]
 
-  @@index([email])
-  @@index([status])
+  @@map("users")
+}
+
+model ExternalIdentity {
+  id              String   @id @default(uuid())
+  userId          String
+  provider        String
+  subject         String
+  emailAtProvider String?
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@map("external_identities")
 }
 
 model Session {
-  id         String   @id @default(uuid())
-  userId     String
-  token      String   @unique
-  expiresAt  DateTime
-  userAgent  String?
-  ip         String?
-  createdAt  DateTime @default(now())
+  id            String   @id @default(uuid())
+  userId        String
+  tokenHash     String   @unique
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  lastSeenAt    DateTime @default(now())
+  ipHash        String?
+  userAgentHash String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([token])
+  @@index([expiresAt])
+  @@map("sessions")
 }
 
-model EmailVerification {
-  id        String   @id @default(uuid())
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
   userId    String
-  token     String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([token])
+  @@index([userId])
+  @@map("email_verification_tokens")
 }
 
-model PasswordReset {
-  id        String   @id @default(uuid())
+model PasswordResetToken {
+  id        String    @id @default(uuid())
   userId    String
-  token     String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([token])
-}
-
-// ═══════════════════════════════════════════
-// ORGANIZACIÓN Y ROLES
-// ═══════════════════════════════════════════
-
-model Organization {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  planId    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
-
-  memberships   Membership[]
-  projects      Project[]
-  entitlement   Entitlement?
-  subscription  Subscription?
-  stripeCustomer StripeCustomer?
-  wallet        Wallet?
-  auditEvents   AuditEvent[]
-
-  @@index([slug])
-}
-
-enum Role {
-  OWNER
-  ADMIN
-  MEMBER
-  VIEWER
-}
-
-model Membership {
-  id             String   @id @default(uuid())
-  userId         String
-  organizationId String
-  role           Role     @default(MEMBER)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, organizationId])
-  @@index([organizationId])
-}
-
-// ═══════════════════════════════════════════
-// CONTENIDO
-// ═══════════════════════════════════════════
-
-model Project {
-  id             String   @id @default(uuid())
-  organizationId String
-  name           String
-  description    String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  assets       Asset[]
-  toolRuns     ToolRun[]
-
-  @@index([organizationId])
-}
-
-model Asset {
-  id             String   @id @default(uuid())
-  projectId      String
-  organizationId String
-  name           String
-  mimeType       String
-  sizeBytes      Int
-  storageKey     String
-  createdAt      DateTime @default(now())
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@index([organizationId])
-}
-
-enum ToolStatus {
-  DRAFT
-  DEVELOPMENT
-  TESTED
-  PUBLISHED
-  DISABLED
-}
-
-model Tool {
-  id          String     @id @default(uuid())
-  slug        String     @unique
-  name        String
-  description String?
-  category    String
-  status      ToolStatus @default(DRAFT)
-  creditCost  Int        // Coste base en créditos
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  versions ToolVersion[]
-  toolRuns ToolRun[]
-
-  @@index([status])
-  @@index([category])
-}
-
-model ToolVersion {
-  id          String   @id @default(uuid())
-  toolId      String
-  version     String   // semver
-  changelog   String?
-  config      Json?    // Configuración de la versión
-  publishedAt DateTime?
-  createdAt   DateTime @default(now())
-
-  tool Tool @relation(fields: [toolId], references: [id], onDelete: Cascade)
-
-  @@unique([toolId, version])
-  @@index([toolId])
-}
-
-enum JobStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  CANCELLED
-}
-
-model Job {
-  id             String    @id @default(uuid())
-  organizationId String
-  toolRunId      String?
-  status         JobStatus @default(PENDING)
-  progress       Int       @default(0)
-  error          String?
-  startedAt      DateTime?
-  completedAt    DateTime?
-  createdAt      DateTime  @default(now())
-
-  @@index([organizationId])
-  @@index([status])
-}
-
-model ToolRun {
-  id             String   @id @default(uuid())
-  organizationId String
-  projectId      String?
-  toolId         String
-  toolVersionId  String?
-  inputs         Json
-  outputs        Json?
-  creditsUsed    Int      @default(0)
-  status         String   @default("pending")
-  createdAt      DateTime @default(now())
-  completedAt    DateTime?
-
-  tool       Tool       @relation(fields: [toolId], references: [id])
-  project    Project?   @relation(fields: [projectId], references: [id])
-  artifacts  Artifact[]
-  creditHold CreditHold?
-
-  @@index([organizationId])
-  @@index([toolId])
-}
-
-model Artifact {
-  id        String   @id @default(uuid())
-  toolRunId String
-  type      String   // "audio", "midi", "image", "text", etc.
-  name      String
-  storageKey String
-  sizeBytes Int
-  metadata  Json?
-  createdAt DateTime @default(now())
-
-  toolRun ToolRun @relation(fields: [toolRunId], references: [id], onDelete: Cascade)
-
-  @@index([toolRunId])
-}
-
-// ═══════════════════════════════════════════
-// ECONOMÍA
-// ═══════════════════════════════════════════
-
-model Plan {
-  id              String  @id @default(uuid())
-  slug            String  @unique
-  name            String
-  priceMonthly    Int     // céntimos
-  priceYearly     Int     // céntimos
-  creditsMonthly  Int
-  maxUsers        Int
-  storageBytes    BigInt
-  features        Json    // Features habilitadas
-  isActive        Boolean @default(true)
-  createdAt       DateTime @default(now())
-
-  organizations Organization[]
-  entitlements  Entitlement[]
-
-  @@index([slug])
-}
-
-model Entitlement {
-  id             String   @id @default(uuid())
-  organizationId String   @unique
-  planId         String
-  creditsTotal   Int
-  creditsUsed    Int      @default(0)
-  activeSince    DateTime @default(now())
-  activeUntil    DateTime?
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  plan         Plan         @relation(fields: [planId], references: [id])
-
-  @@index([organizationId])
-}
-
-model Subscription {
-  id                   String   @id @default(uuid())
-  organizationId       String   @unique
-  stripeSubscriptionId String   @unique
-  planId               String
-  status               String   // active, past_due, canceled, etc.
-  currentPeriodStart   DateTime
-  currentPeriodEnd     DateTime
-  cancelAtPeriodEnd    Boolean  @default(false)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@index([stripeSubscriptionId])
-}
-
-model StripeCustomer {
-  id             String @id @default(uuid())
-  organizationId String @unique
-  stripeCustomerId String @unique
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-}
-
-model StripeEvent {
-  id          String   @id @default(uuid())
-  eventId     String   @unique // Stripe event ID
-  type        String
-  data        Json
-  processedAt DateTime?
-  createdAt   DateTime @default(now())
-
-  @@index([eventId])
-}
-
-model Wallet {
-  id             String @id @default(uuid())
-  organizationId String @unique
-  balance        Int    @default(0) // Créditos disponibles (enteros)
-  updatedAt      DateTime @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ledgerEntries CreditLedgerEntry[]
-  creditHolds   CreditHold[]
-}
-
-model CreditHold {
-  id        String   @id @default(uuid())
-  walletId  String
-  toolRunId String   @unique
-  amount    Int
-  status    String   @default("held") // held, released, settled
-  createdAt DateTime @default(now())
-  settledAt DateTime?
-
-  wallet  Wallet  @relation(fields: [walletId], references: [id])
-  toolRun ToolRun @relation(fields: [toolRunId], references: [id])
-
-  @@index([walletId])
-}
-
-enum LedgerEntryType {
-  CREDIT       // Créditos añadidos (plan, compra)
-  DEBIT        // Créditos consumidos
-  HOLD         // Reserva
-  RELEASE      // Liberación de reserva
-  REFUND       // Devolución
-  EXPIRATION   // Créditos expirados
-}
-
-model CreditLedgerEntry {
-  id             String         @id @default(uuid())
-  walletId       String
-  type           LedgerEntryType
-  amount         Int            // Positivo = entrada, negativo = salida
-  balanceAfter   Int            // Saldo después de este movimiento
-  reference      String?        // ID de suscripción, toolRun, etc.
-  description    String?
-  createdAt      DateTime       @default(now())
-
-  wallet Wallet @relation(fields: [walletId], references: [id])
-
-  @@index([walletId])
-  @@index([reference])
-}
-
-model UsageEvent {
-  id             String   @id @default(uuid())
-  organizationId String
-  toolId         String
-  toolRunId      String?
-  creditsUsed    Int
-  createdAt      DateTime @default(now())
-
-  @@index([organizationId])
-  @@index([toolId])
-  @@index([createdAt])
-}
-
-// ═══════════════════════════════════════════
-// AUDITORÍA
-// ═══════════════════════════════════════════
-
-model AuditEvent {
-  id             String   @id @default(uuid())
-  userId         String?
-  organizationId String?
-  action         String   // "user.login", "tool.run", "plan.upgrade", etc.
-  resource       String?  // Tipo de recurso afectado
-  resourceId     String?  // ID del recurso
-  metadata       Json?
-  ip             String?
-  userAgent      String?
-  createdAt      DateTime @default(now())
-
-  user         User?         @relation(fields: [userId], references: [id])
-  organization Organization? @relation(fields: [organizationId], references: [id])
-
   @@index([userId])
-  @@index([organizationId])
-  @@index([action])
-  @@index([createdAt])
-}
-
-// ═══════════════════════════════════════════
-// SEGURIDAD
-// ═══════════════════════════════════════════
-
-model LoginAttempt {
-  id        String   @id @default(uuid())
-  userId    String?
-  email     String
-  ip        String
-  success   Boolean
-  reason    String?  // "invalid_password", "account_suspended", etc.
-  createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([email])
-  @@index([ip])
-  @@index([createdAt])
+  @@map("password_reset_tokens")
 }
 
 model SecurityEvent {
-  id        String   @id @default(uuid())
+  id        BigInt   @id @default(autoincrement())
   userId    String?
-  sessionId String?
-  action    String   // "login_failed", "session_revoked", "password_changed", etc.
-  ip        String?
-  userAgent String?
-  metadata  Json?
+  type      String
+  ipHash    String?
+  meta      Json?
   createdAt DateTime @default(now())
 
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  @@index([userId])
-  @@index([sessionId])
-  @@index([action])
-  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("security_events")
+}
+
+// ---------- PROYECTOS / DOCUMENTOS (Andalus Cinema, Fase 00) ----------
+
+model Project {
+  id         String   @id @default(uuid())
+  ownerId    String
+  name       String
+  visibility String   @default("private")
+  status     String   @default("draft")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  owner     User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  documents SourceDocument[]
+
+  @@index([ownerId])
+  @@map("projects")
+}
+
+model SourceDocument {
+  id             String   @id @default(uuid())
+  projectId      String
+  ownerId        String
+  filename       String
+  storageKey     String   @unique
+  mimeType       String
+  sizeBytes      BigInt
+  checksumSha256 String
+  rightsDeclared Boolean  @default(false)
+  rightsBasis    String?
+  status         String   @default("uploaded")
+  pagesCount     Int?
+  extractedChars Int?
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  project        Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  processingJobs DocumentProcessingJob[]
+  pages          DocumentPage[]
+
+  @@index([projectId])
+  @@index([ownerId])
+  @@map("source_documents")
+}
+
+model DocumentPage {
+  id         String @id @default(uuid())
+  documentId String
+  pageNumber Int
+  text       String @db.Text
+  charCount  Int
+
+  document SourceDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, pageNumber])
+  @@map("document_pages")
+}
+
+model DocumentProcessingJob {
+  id         String    @id @default(uuid())
+  documentId String
+  kind       String
+  status     String    @default("queued")
+  error      String?
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  document SourceDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@map("document_processing_jobs")
+}
+
+// ---------- ECONOMIA (contratos; sin cobros reales en Fase 00) ----------
+
+model CreditWallet {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  purchasedUnits    BigInt   @default(0)
+  promoUnits        BigInt   @default(0)
+  reservedUnits     BigInt   @default(0)
+  consumedUnits     BigInt   @default(0)
+  currencyCode      String   @default("EUR_CREDIT")
+  conversionVersion String   @default("v1")
+  updatedAt         DateTime @updatedAt
+
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries CreditLedgerEntry[]
+
+  @@map("credit_wallets")
+}
+
+model CreditLedgerEntry {
+  id             BigInt   @id @default(autoincrement())
+  walletId       String
+  movementType   String
+  amountUnits    BigInt
+  referenceType  String?
+  referenceId    String?
+  idempotencyKey String   @unique
+  createdAt      DateTime @default(now())
+
+  wallet CreditWallet @relation(fields: [walletId], references: [id])
+
+  @@index([walletId, createdAt])
+  @@map("credit_ledger_entries")
+}
+
+model PromotionCampaign {
+  id                       String    @id @default(uuid())
+  code                     String    @unique
+  name                     String
+  eligibleOncePerUser      Boolean   @default(true)
+  minPaidAmountMinor       Int       @default(2000)
+  currency                 String    @default("EUR")
+  grantMultiplierNumerator Int       @default(1)
+  grantMultiplierDenominator Int     @default(1)
+  active                   Boolean   @default(false)
+  startsAt                 DateTime?
+  endsAt                   DateTime?
+  createdAt                DateTime  @default(now())
+
+  redemptions PromotionRedemption[]
+
+  @@map("promotion_campaigns")
+}
+
+model PromotionRedemption {
+  id             String   @id @default(uuid())
+  campaignId     String
+  userId         String
+  paidAmountMinor Int
+  grantedUnits   BigInt
+  paymentRef     String?
+  idempotencyKey String   @unique
+  createdAt      DateTime @default(now())
+
+  campaign PromotionCampaign @relation(fields: [campaignId], references: [id])
+
+  @@unique([campaignId, userId])
+  @@map("promotion_redemptions")
+}
+
+model PaymentRecord {
+  id             String    @id @default(uuid())
+  userId         String
+  provider       String
+  mode           String
+  externalRef    String?   @unique
+  purpose        String
+  amountMinor    Int
+  currency       String
+  status         String
+  idempotencyKey String?   @unique
+  confirmedAt    DateTime?
+  rawEventDigest String?
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, status])
+  @@map("payment_records")
 }
