@@ -27,10 +27,9 @@
 - **Pagos (previsto):** Stripe TEST → LIVE tras aprobación humana
 - **Tests (previsto):** Vitest + Playwright
 
-## Estado actual: FASE 01 COMPLETADA
+## Estado actual: FASE 02 IMPLEMENTADA
 
-Interfaz profesional completa (15 páginas), sistema de diseño con tema claro/oscuro, catálogo con 23 herramientas en 10 familias, buscador funcional, filtros, fichas individuales, rutas de cuenta y facturación.
-Sin motores de ejecución. Sin integraciones activas. Sin cobros. Sin datos reales.
+Backend Fastify completo con autenticación real (registro, login, verificación email, recuperación contraseña), sesiones seguras con cookies HttpOnly, protección CSRF, rate limiting, hashing Argon2id. Primera herramienta musical (calculadora MIDI) implementada con tests. Frontend aún no conectado a API real. PostgreSQL y ejecución de tests pendientes.
 
 ## Reglas permanentes
 

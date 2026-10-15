@@ -84,3 +84,28 @@
 - **Decisión:** Mapeo de intenciones a herramientas sin IA externa.
 - **Razón:** Sin servicios de IA configurados. Más económico y predecible.
 - **Fecha:** FASE 01
+
+### DEC-017: Argon2id para hashing
+- **Decisión:** Usar Argon2id para contraseñas y tokens.
+- **Razón:** Recomendado por OWASP, resistente a ataques GPU, configurable.
+- **Fecha:** FASE 02
+
+### DEC-018: Sesiones en PostgreSQL
+- **Decisión:** Almacenar sesiones en base de datos, no en memoria.
+- **Razón:** Permite escalar horizontalmente, revocación persistente.
+- **Fecha:** FASE 02
+
+### DEC-019: Cookies HttpOnly para sesiones
+- **Decisión:** Usar cookies HttpOnly en lugar de localStorage.
+- **Razón:** Más seguro contra XSS, no accesible desde JavaScript.
+- **Fecha:** FASE 02
+
+### DEC-020: Calculadora MIDI como primera herramienta
+- **Decisión:** Implementar calculadora MIDI/frecuencias como herramienta piloto.
+- **Razón:** Determinista, verificable matemáticamente, sin dependencias externas.
+- **Fecha:** FASE 02
+
+### DEC-021: Email en modo console para desarrollo
+- **Decisión:** Imprimir emails en consola en desarrollo.
+- **Razón:** No requiere proveedor SMTP para pruebas locales.
+- **Fecha:** FASE 02

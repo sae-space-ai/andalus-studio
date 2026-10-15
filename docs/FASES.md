@@ -28,19 +28,28 @@
 - [ ] API Fastify (FASE 02)
 - [ ] Motores de herramientas (FASE 02+)
 
-## FASE 02 — API base y autenticación (previsto)
-- [ ] Fastify + TypeScript + Zod
-- [ ] Registro, login, verificación email
-- [ ] Sesiones HttpOnly + CSRF
-- [ ] RBAC middleware
-- [ ] Tests de auth
+## FASE 02 — Backend, autenticación y seguridad ✅ IMPLEMENTADA
+- [x] Fastify + TypeScript + Zod
+- [x] Registro con validación y hashing Argon2id
+- [x] Login con verificación de estado
+- [x] Verificación de email con tokens seguros
+- [x] Sesiones HttpOnly + Secure + SameSite
+- [x] CSRF protection
+- [x] Rate limiting
+- [x] Recuperación de contraseña
+- [x] RBAC (roles USER, STAFF, ADMIN)
+- [x] 42 tests creados (calculadora MIDI + seguridad)
+- [x] Primera herramienta: Calculadora MIDI
+- [x] Documentación completa FASE 02
+- [ ] Frontend conectado a API real (pendiente)
+- [ ] Tests ejecutados (requiere PostgreSQL)
 
-## FASE 02 — Herramientas y ejecución
+## FASE 03 — Herramientas y ejecución (previsto)
 - [ ] Tool SDK
 - [ ] Sistema de jobs (BullMQ)
 - [ ] Ejecución con reserva de créditos
 - [ ] Artefactos y descargas
-- [ ] Primera herramienta funcional (determinista)
+- [ ] Más herramientas funcionales
 
 ## FASE 03 — Pagos Stripe TEST
 - [ ] Integración Stripe (modo TEST)
