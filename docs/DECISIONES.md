@@ -54,3 +54,33 @@
 - **Razón:** No se puede ejecutar servidor backend en este sandbox.
 - **Impacto:** Frontend funcional con datos simulados. Backend como referencia.
 - **Fecha:** FASE 00
+
+### DEC-011: Sistema de diseño centralizado
+- **Decisión:** Variables CSS en `src/styles/tokens.css` con soporte light/dark.
+- **Razón:** Consistencia visual, mantenimiento sencillo, temas intercambiables.
+- **Fecha:** FASE 01
+
+### DEC-012: Catálogo basado en datos estructurados
+- **Decisión:** Registro maestro tipado en `src/features/tools/registry.ts`.
+- **Razón:** Separación de datos y presentación, reutilización, testabilidad.
+- **Fecha:** FASE 01
+
+### DEC-013: Estados conservadores de herramientas
+- **Decisión:** Todas las herramientas en estado PLANNED. Ninguna AVAILABLE.
+- **Razón:** Sin motores implementados. No falsear capacidades.
+- **Fecha:** FASE 01
+
+### DEC-014: Sin anagrama inventado
+- **Decisión:** Usar identificación tipográfica provisional. No inventar logo.
+- **Razón:** El anagrama original no se encontró. No crear imitaciones.
+- **Fecha:** FASE 01
+
+### DEC-015: Búsqueda tolerante a acentos
+- **Decisión:** Normalización NFD para búsqueda.
+- **Razón:** Mejora UX para usuarios hispanohablantes.
+- **Fecha:** FASE 01
+
+### DEC-016: Recomendador determinista
+- **Decisión:** Mapeo de intenciones a herramientas sin IA externa.
+- **Razón:** Sin servicios de IA configurados. Más económico y predecible.
+- **Fecha:** FASE 01

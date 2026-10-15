@@ -27,10 +27,10 @@
 - **Pagos (previsto):** Stripe TEST → LIVE tras aprobación humana
 - **Tests (previsto):** Vitest + Playwright
 
-## Estado actual: FASE 00 COMPLETADA
+## Estado actual: FASE 01 COMPLETADA
 
-Estructura base, modelo de datos, contratos, planes, catálogo y frontend de demostración creados.
-Sin integraciones activas. Sin cobros. Sin datos reales.
+Interfaz profesional completa, sistema de diseño, catálogo con 23 herramientas en 10 familias, buscador funcional, filtros, fichas individuales, tema claro/oscuro.
+Sin motores de ejecución. Sin integraciones activas. Sin cobros. Sin datos reales.
 
 ## Reglas permanentes
 

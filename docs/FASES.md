@@ -12,7 +12,23 @@
 - [x] Documentación completa
 - [x] Frontend de demostración
 
-## FASE 01 — API base y autenticación
+## FASE 01 — Identidad, interfaz y catálogo ✅
+- [x] Sistema de diseño (Andalucía Light/Dark)
+- [x] Interfaz profesional (10 páginas)
+- [x] Catálogo con 23 herramientas en 10 familias
+- [x] Buscador funcional (tolerante a acentos)
+- [x] Filtros funcionales (familia, estado, acceso)
+- [x] Fichas individuales reutilizables
+- [x] Recomendador determinista
+- [x] Navegación responsive
+- [x] Tema claro/oscuro funcional
+- [x] 30 tests creados
+- [x] Documentación completa FASE 01
+- [x] Build exitoso
+- [ ] API Fastify (FASE 02)
+- [ ] Motores de herramientas (FASE 02+)
+
+## FASE 02 — API base y autenticación (previsto)
 - [ ] Fastify + TypeScript + Zod
 - [ ] Registro, login, verificación email
 - [ ] Sesiones HttpOnly + CSRF
