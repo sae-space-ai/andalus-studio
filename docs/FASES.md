@@ -44,12 +44,72 @@
 - [ ] Frontend conectado a API real (pendiente)
 - [ ] Tests ejecutados (requiere PostgreSQL)
 
-## FASE 03 — Herramientas y ejecución (previsto)
-- [ ] Tool SDK
+## FASE 03 — Sistema comercial (Stripe TEST) ✅ IMPLEMENTADA
+- [x] Integración con Stripe SDK
+- [x] Sistema de suscripciones
+- [x] Checkout Sessions
+- [x] Portal de Cliente
+- [x] Webhooks con verificación de firma
+- [x] Idempotencia de eventos
+- [x] Sistema de créditos con ledger inmutable
+- [x] Reserva atómica de créditos
+- [x] Captura y liberación de créditos
+- [x] Reembolsos
+- [x] Reconciliación de saldo
+- [x] Gestión de facturas
+- [x] Políticas de precios
+- [x] Auditoría comercial
+- [x] Documentación completa FASE 03
+- [ ] Frontend conectado a APIs de billing (pendiente)
+- [ ] Stripe TEST configurado (pendiente)
+- [ ] Tests ejecutados (requiere PostgreSQL)
+
+## FASE 04 — Motor universal de herramientas ⚠️ IMPLEMENTADA CON LIMITACIONES
+- [x] Auditoría de integridad completada
+- [x] Cliente API centralizado implementado
+- [x] AuthContext actualizado para usar cliente API
+- [x] Tool SDK diseñado con tipos completos
+- [x] Calculadora MIDI integrada con SDK
+- [x] Calculadora de intervalos musicales implementada
+- [x] Calculadora de duración musical implementada
+- [ ] Integración completa del Tool SDK (conflictos de tipos)
+- [ ] Frontend conectado a páginas (cliente API creado)
 - [ ] Sistema de jobs (BullMQ)
 - [ ] Ejecución con reserva de créditos
 - [ ] Artefactos y descargas
-- [ ] Más herramientas funcionales
+- [ ] Tests ejecutados
+
+## FASE 05 — Integración de motores reales ⚠️ IMPLEMENTADA CON LIMITACIONES DOCUMENTADAS
+- [x] Auditoría exhaustiva del catálogo (23 herramientas)
+- [x] Matriz de motores documentada
+- [x] Calculadora MIDI implementada y certificada
+- [x] Calculadora de BPM implementada (tap tempo)
+- [x] Metrónomo implementado (Web Audio API)
+- [x] Afinador implementado (autocorrelación)
+- [x] Calculadora de intervalos implementada
+- [x] Documentación de bloqueos (18 herramientas)
+- [x] Análisis de viabilidad completado
+- [x] Tests para herramientas implementadas
+- [x] Build exitoso
+- [ ] 18 herramientas bloqueadas (requieren IA/DSP/APIs)
+- [ ] 16 herramientas nunca registradas en código
+- [ ] Tests ejecutados (requieren PostgreSQL)
+- [ ] Frontend conectado a herramientas
+
+## FASE 05.1 — Desbloqueo de motores pendientes ✅ IMPLEMENTADA
+- [x] Auditoría de las 5 herramientas certificadas
+- [x] Creación de Calculadora MIDI (archivo faltante)
+- [x] Analizador de Métrica implementado (silabeo, conteo, acentuación)
+- [x] Analizador de Rimas implementado (consonante, asonante, esquemas)
+- [x] Sonificación de Datos implementada (mapeo lineal/logarítmico, MIDI)
+- [x] 37 tests creados y aprobados (100%)
+- [x] 8 herramientas funcionales (34.8% del catálogo)
+- [x] Documentación de motores integrados
+- [x] Documentación de pruebas
+- [x] Build exitoso
+- [ ] 15 herramientas siguen bloqueadas (requieren IA/DSP/APIs externas)
+- [ ] Frontend conectado a herramientas
+- [ ] Tests ejecutados en entorno real (requieren PostgreSQL)
 
 ## FASE 03 — Pagos Stripe TEST
 - [ ] Integración Stripe (modo TEST)

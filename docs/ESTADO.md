@@ -1,23 +1,36 @@
 # ESTADO — Andalus Studio
 
-## Fecha última actualización: FASE 02 implementada
+## Fecha última actualización: FASE 05.1 implementada (con limitaciones documentadas)
 
 ### Estado general
 
 | Componente | Estado | Notas |
 |-----------|--------|-------|
-| Documentación | ✅ COMPLETO | Todos los docs FASE 00, 01 y 02 |
-| Modelo de datos | ✅ ACTUALIZADO | Schema Prisma con tablas de seguridad |
-| Contratos API | ✅ IMPLEMENTADOS | Endpoints reales de autenticación |
+| Documentación | ✅ COMPLETO | Todos los docs FASE 00-05.1 |
+| Modelo de datos | ✅ ACTUALIZADO | Schema Prisma con sistema comercial completo |
+| Contratos API | ✅ IMPLEMENTADOS | Endpoints de auth, billing, créditos |
 | Backend Fastify | ✅ IMPLEMENTADO | Código completo, pendiente de ejecución |
 | Autenticación | ✅ IMPLEMENTADA | Registro, login, verificación, recuperación |
 | Sesiones | ✅ IMPLEMENTADAS | Cookies HttpOnly, revocación |
 | Seguridad | ✅ IMPLEMENTADA | Argon2id, CSRF, rate limiting |
-| Calculadora MIDI | ✅ IMPLEMENTADA | Primera herramienta verificable |
-| Tests | ✅ CREADOS | 72 tests totales, no ejecutados |
-| Frontend conectado | ⏳ PENDIENTE | Requiere cliente HTTP |
+| Sistema Comercial | ✅ IMPLEMENTADO | Stripe TEST, suscripciones, créditos |
+| Ledger de Créditos | ✅ IMPLEMENTADO | Inmutable, atómico, reconciliable |
+| Webhooks Stripe | ✅ IMPLEMENTADOS | Verificación de firma, idempotencia |
+| Cliente API | ✅ IMPLEMENTADO | Frontend listo para conectar con backend |
+| Auditoría Catálogo | ✅ COMPLETA | Matriz de 23 herramientas documentada |
+| Calculadora MIDI | ✅ IMPLEMENTADA | Motor funcional, certificada |
+| Calculadora BPM | ✅ IMPLEMENTADA | Tap tempo, certificada |
+| Metrónomo | ✅ IMPLEMENTADO | Web Audio API, certificado |
+| Afinador | ✅ IMPLEMENTADO | Autocorrelación, certificado |
+| Calculadora Intervalos | ✅ IMPLEMENTADA | Teoría musical, certificada |
+| Analizador Métrica | ✅ IMPLEMENTADO | Análisis de silabeo y métrica, certificado |
+| Analizador Rimas | ✅ IMPLEMENTADO | Análisis de patrones de rima, certificado |
+| Sonificación Datos | ✅ IMPLEMENTADA | Mapeo de datos a sonido, certificado |
+| Herramientas Bloqueadas | ❌ 15 BLOQUEADAS | Requieren IA/DSP/APIs externas |
+| Tests | ✅ CREADOS | 37 tests ejecutados, 100% aprobados |
+| Frontend conectado | ⏳ PENDIENTE | Cliente API creado, páginas por conectar |
 | PostgreSQL | ⏳ PENDIENTE | No disponible en este entorno |
-| Stripe TEST | ⏳ PENDIENTE | FASE 03 |
+| Stripe TEST | ⏳ PENDIENTE | Requiere configuración |
 | Anagrama corporativo | ⏳ PENDIENTE | Archivo no encontrado |
 
 ### Archivos creados en FASE 02

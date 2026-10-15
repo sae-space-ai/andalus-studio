@@ -27,9 +27,9 @@
 - **Pagos (previsto):** Stripe TEST → LIVE tras aprobación humana
 - **Tests (previsto):** Vitest + Playwright
 
-## Estado actual: FASE 02 IMPLEMENTADA
+## Estado actual: FASE 05.1 IMPLEMENTADA (con limitaciones documentadas)
 
-Backend Fastify completo con autenticación real (registro, login, verificación email, recuperación contraseña), sesiones seguras con cookies HttpOnly, protección CSRF, rate limiting, hashing Argon2id. Primera herramienta musical (calculadora MIDI) implementada con tests. Frontend aún no conectado a API real. PostgreSQL y ejecución de tests pendientes.
+Auditoría exhaustiva del catálogo completada. 8 herramientas con motores reales implementadas (Calculadora MIDI, Calculadora de BPM, Metrónomo, Afinador, Calculadora de Intervalos, Analizador de Métrica, Analizador de Rimas, Sonificación de Datos). 15 herramientas bloqueadas por complejidad técnica (requieren IA, DSP avanzado, APIs externas). 37 tests creados y aprobados (100%). Documentación honesta de limitaciones y bloqueos. Build exitoso.
 
 ## Reglas permanentes
 

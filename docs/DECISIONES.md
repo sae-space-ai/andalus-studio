@@ -109,3 +109,72 @@
 - **Decisión:** Imprimir emails en consola en desarrollo.
 - **Razón:** No requiere proveedor SMTP para pruebas locales.
 - **Fecha:** FASE 02
+
+### DEC-022: Cliente API centralizado
+- **Decisión:** Crear un cliente API único en `src/lib/api.ts`.
+- **Razón:** Simplifica conexión frontend-backend, centraliza manejo de errores, CSRF y cookies.
+- **Fecha:** FASE 04
+
+### DEC-023: Auditoría antes de cambios
+- **Decisión:** Realizar auditoría de integridad antes de modificar código.
+- **Razón:** Confirmar que no hay archivos perdidos antes de construir sobre la base existente.
+- **Fecha:** FASE 04
+
+### DEC-024: Herramientas deterministas primero
+- **Decisión:** Implementar herramientas matemáticas simples antes que las complejas.
+- **Razón:** Permiten validar la arquitectura sin dependencias externas complejas.
+- **Fecha:** FASE 04
+
+### DEC-025: Integración gradual del Tool SDK
+- **Decisión:** Mantener compatibilidad con FASE 01 mientras se migra al nuevo SDK.
+- **Razón:** Evitar conflictos de tipos y romper código existente.
+- **Resultado:** Conflictos encontrados, se requiere refactorización adicional.
+- **Fecha:** FASE 04
+
+### DEC-026: Implementar herramientas de análisis lingüístico
+- **Decisión:** Implementar Analizador de Métrica y Analizador de Rimas con algoritmos propios.
+- **Razón:** Son herramientas deterministas que no requieren IA, solo reglas lingüísticas.
+- **Resultado:** 2 herramientas implementadas y certificadas.
+- **Fecha:** FASE 05.1
+
+### DEC-027: Implementar sonificación básica
+- **Decisión:** Implementar Sonificación de Datos con mapeo lineal y logarítmico.
+- **Razón:** Es una herramienta determinista que convierte datos numéricos a sonido.
+- **Resultado:** 1 herramienta implementada y certificada.
+- **Fecha:** FASE 05.1
+
+### DEC-028: No implementar herramientas que requieren IA sin recursos
+- **Decisión:** No implementar herramientas que requieren APIs de IA sin presupuesto.
+- **Razón:** No hay presupuesto para APIs de IA en este momento.
+- **Resultado:** 12 herramientas pendientes documentadas.
+- **Fecha:** FASE 05.1
+
+### DEC-029: Priorizar herramientas de alta demanda
+- **Decisión:** Implementar primero herramientas de análisis lingüístico y sonificación.
+- **Razón:** Son útiles para compositores y no requieren recursos externos.
+- **Resultado:** 3 herramientas implementadas en FASE 05.1.
+- **Fecha:** FASE 05.1
+
+### DEC-026: Documentación honesta de limitaciones
+- **Decisión:** Documentar honestamente que solo 5 de 23 herramientas tienen motores implementados.
+- **Razón:** Transparencia con el usuario, no inventar integraciones inexistentes.
+- **Resultado:** Matriz de motores y análisis de bloqueos completados.
+- **Fecha:** FASE 05
+
+### DEC-027: Implementar solo herramientas deterministas factibles
+- **Decisión:** Implementar motores para herramientas matemáticas/deterministas sin dependencias externas complejas.
+- **Razón:** Maximizar herramientas funcionales con recursos disponibles.
+- **Resultado:** 5 herramientas implementadas (MIDI, BPM, Metrónomo, Afinador, Intervalos).
+- **Fecha:** FASE 05
+
+### DEC-028: No inventar motores para herramientas complejas
+- **Decisión:** No implementar motores falsos para herramientas que requieren IA, DSP avanzado o APIs externas.
+- **Razón:** Filosofía del proyecto: "Una herramienta. Una promesa. Un resultado verificado."
+- **Resultado:** 18 herramientas documentadas como bloqueadas con análisis de viabilidad.
+- **Fecha:** FASE 05
+
+### DEC-029: Web Audio API para herramientas de audio en navegador
+- **Decisión:** Usar Web Audio API para metrónomo y afinador.
+- **Razón:** Permite procesamiento de audio en navegador sin dependencias externas.
+- **Resultado:** Metrónomo con scheduling preciso y afinador con autocorrelación implementados.
+- **Fecha:** FASE 05
