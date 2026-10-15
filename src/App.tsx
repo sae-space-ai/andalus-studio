@@ -1,44 +1,46 @@
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth, DEMO_PLANS } from './context/AuthContext';
-import { CATEGORY_LABELS, STATUS_LABELS, STATUS_COLORS } from './types';
-import type { Tool, ToolCategory, CreditLedgerEntry } from './types';
-import { useState, useEffect } from 'react';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { useToolCatalog, useToolRecommender } from './features/tools/hooks';
+import { getToolBySlug } from './features/tools/registry';
+import { getStatusLabel, getStatusColor, getCostPolicyLabel, canToolExecute, TOOL_FAMILIES as FAMILIES } from './features/tools/types';
+import type { ToolFamily } from './features/tools/types';
+import { useState } from 'react';
+
+// Páginas de cuenta
+import ForgotPasswordPage from './features/account/pages/ForgotPasswordPage';
+import AccountPage from './features/account/pages/AccountPage';
+
+// Páginas de facturación
+import BillingPage from './features/pricing/pages/BillingPage';
+import CreditsPage from './features/pricing/pages/CreditsPage';
+import SubscriptionPage from './features/pricing/pages/SubscriptionPage';
 
 // ═══════════════════════════════════════════
-// MOCK DATA
+// COMPONENTES DE LAYOUT
 // ═══════════════════════════════════════════
 
-const MOCK_TOOLS: Tool[] = [
-  { id: '1', slug: 'melodic-generator', name: 'Generador Melódico', description: 'Genera melodías originales basadas en parámetros de estilo, tonalidad y complejidad.', category: 'musica-composicion', status: 'PUBLISHED', creditCost: 10, createdAt: '2025-01-15' },
-  { id: '2', slug: 'harmony-engine', name: 'Motor de Armonía', description: 'Armoniza melodías automáticamente con progresiones inteligentes.', category: 'musica-composicion', status: 'PUBLISHED', creditCost: 15, createdAt: '2025-01-20' },
-  { id: '3', slug: 'audio-to-midi', name: 'Audio → MIDI', description: 'Convierte audio monofónico a MIDI con detección de pitch.', category: 'midi', status: 'TESTED', creditCost: 20, createdAt: '2025-02-01' },
-  { id: '4', slug: 'midi-pattern-gen', name: 'Generador de Patrones MIDI', description: 'Crea patrones rítmicos y melódicos en formato MIDI.', category: 'midi', status: 'PUBLISHED', creditCost: 8, createdAt: '2025-02-10' },
-  { id: '5', slug: 'lyric-writer', name: 'Escritor de Letras', description: 'Genera letras originales por tema, estilo e idioma.', category: 'letras-idiomas', status: 'DEVELOPMENT', creditCost: 12, createdAt: '2025-02-15' },
-  { id: '6', slug: 'rhyme-analyzer', name: 'Analizador de Rima', description: 'Analiza patrones de rima y métrica en textos.', category: 'letras-idiomas', status: 'PUBLISHED', creditCost: 5, createdAt: '2025-02-20' },
-  { id: '7', slug: 'voice-synth', name: 'Síntesis de Voz', description: 'Genera voz cantada a partir de MIDI y letra.', category: 'voz-audio', status: 'DEVELOPMENT', creditCost: 50, createdAt: '2025-03-01' },
-  { id: '8', slug: 'source-separator', name: 'Separador de Fuentes', description: 'Separa instrumentos de una mezcla de audio.', category: 'voz-audio', status: 'TESTED', creditCost: 25, createdAt: '2025-03-10' },
-  { id: '9', slug: 'cover-generator', name: 'Generador de Portadas', description: 'Crea portadas de álbumes con IA generativa.', category: 'imagen-video', status: 'PUBLISHED', creditCost: 15, createdAt: '2025-03-15' },
-  { id: '10', slug: 'data-sonification', name: 'Sonificación de Datos', description: 'Convierte datasets en paisajes sonoros.', category: 'sonificacion', status: 'DRAFT', creditCost: 30, createdAt: '2025-04-01' },
-  { id: '11', slug: 'ear-training', name: 'Ear Training', description: 'Ejercicios interactivos de entrenamiento auditivo.', category: 'educacion', status: 'PUBLISHED', creditCost: 3, createdAt: '2025-04-10' },
-  { id: '12', slug: 'mastering-auto', name: 'Masterización Automática', description: 'Masteriza tracks con perfiles de género.', category: 'voz-audio', status: 'DEVELOPMENT', creditCost: 35, createdAt: '2025-04-15' },
-];
-
-const MOCK_LEDGER: CreditLedgerEntry[] = [
-  { id: '1', walletId: 'w1', type: 'CREDIT', amount: 500, balanceAfter: 500, reference: 'sub-001', description: 'Créditos mensuales plan Creator', createdAt: '2025-06-01T10:00:00Z' },
-  { id: '2', walletId: 'w1', type: 'DEBIT', amount: -10, balanceAfter: 490, reference: 'run-001', description: 'Generador Melódico', createdAt: '2025-06-02T14:30:00Z' },
-  { id: '3', walletId: 'w1', type: 'DEBIT', amount: -15, balanceAfter: 475, reference: 'run-002', description: 'Motor de Armonía', createdAt: '2025-06-03T09:15:00Z' },
-  { id: '4', walletId: 'w1', type: 'DEBIT', amount: -8, balanceAfter: 467, reference: 'run-003', description: 'Gen. Patrones MIDI', createdAt: '2025-06-04T16:45:00Z' },
-  { id: '5', walletId: 'w1', type: 'DEBIT', amount: -5, balanceAfter: 462, reference: 'run-004', description: 'Analizador de Rima', createdAt: '2025-06-05T11:20:00Z' },
-  { id: '6', walletId: 'w1', type: 'DEBIT', amount: -15, balanceAfter: 447, reference: 'run-005', description: 'Gen. Portadas', createdAt: '2025-06-06T08:00:00Z' },
-  { id: '7', walletId: 'w1', type: 'DEBIT', amount: -3, balanceAfter: 444, reference: 'run-006', description: 'Ear Training', createdAt: '2025-06-07T19:30:00Z' },
-  { id: '8', walletId: 'w1', type: 'HOLD', amount: -10, balanceAfter: 434, reference: 'run-007', description: 'Reserva: Generador Melódico', createdAt: '2025-06-08T12:00:00Z' },
-  { id: '9', walletId: 'w1', type: 'RELEASE', amount: 10, balanceAfter: 444, reference: 'run-007', description: 'Liberación: error en ejecución', createdAt: '2025-06-08T12:05:00Z' },
-  { id: '10', walletId: 'w1', type: 'DEBIT', amount: -10, balanceAfter: 434, reference: 'run-008', description: 'Generador Melódico', createdAt: '2025-06-09T10:00:00Z' },
-];
-
-// ═══════════════════════════════════════════
-// LAYOUT COMPONENTS
-// ═══════════════════════════════════════════
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+  
+  return (
+    <button
+      onClick={toggleTheme}
+      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
+    >
+      {theme === 'light' ? (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      ) : (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      )}
+    </button>
+  );
+}
 
 function Header() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -47,33 +49,35 @@ function Header() {
 
   const navLinks = [
     { to: '/', label: 'Inicio' },
-    { to: '/catalogo', label: 'Catálogo' },
-    { to: '/precios', label: 'Precios' },
+    { to: '/tools', label: 'Herramientas' },
+    { to: '/studio', label: 'Estudio' },
+    { to: '/pricing', label: 'Planes' },
+    { to: '/how-it-works', label: 'Cómo funciona' },
   ];
 
   return (
-    <header className="glass sticky top-0 z-50 border-b border-green-100">
+    <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-hero-gradient flex items-center justify-center">
-              <span className="text-white font-bold text-sm">AA</span>
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-lg">AA</span>
             </div>
             <div className="hidden sm:block">
-              <span className="font-bold text-green-900 text-lg">AL-ANDALUS AI</span>
-              <span className="text-xs text-green-600 block -mt-1">INTELLIGENCE · ENGINEERING · EUROPE</span>
+              <span className="font-bold text-green-900 dark:text-green-400 text-lg">ANDALUS STUDIO</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400 block -mt-1">CREATE · COMPOSE · ORCHESTRATE</span>
             </div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-6">
             {navLinks.map(link => (
               <Link
                 key={link.to}
                 to={link.to}
                 className={`text-sm font-medium transition-colors ${
                   location.pathname === link.to
-                    ? 'text-green-700'
-                    : 'text-gray-600 hover:text-green-700'
+                    ? 'text-green-700 dark:text-green-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400'
                 }`}
               >
                 {link.label}
@@ -82,32 +86,36 @@ function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
+            
             {isAuthenticated ? (
               <>
-                <Link to="/dashboard" className="text-sm font-medium text-green-700 hover:text-green-900">
-                  Estudio
+                <Link to="/dashboard" className="hidden sm:inline text-sm font-medium text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">
+                  Panel
                 </Link>
-                <Link to="/creditos" className="text-sm font-medium text-green-700 hover:text-green-900">
-                  Créditos
-                </Link>
-                <div className="flex items-center gap-2 pl-3 border-l border-green-200">
-                  <span className="text-sm text-gray-600">{user?.name}</span>
-                  <button onClick={logout} className="text-xs text-red-600 hover:text-red-800">
+                <div className="flex items-center gap-2 pl-3 border-l border-gray-200 dark:border-gray-700">
+                  <span className="hidden sm:inline text-sm text-gray-700 dark:text-gray-300">{user?.name}</span>
+                  <button onClick={logout} className="text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
                     Salir
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-green-700">
+                <Link to="/login" className="hidden sm:inline text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400">
                   Acceder
                 </Link>
-                <Link to="/registro" className="px-4 py-2 bg-green-800 text-white text-sm font-medium rounded-lg hover:bg-green-900 transition-colors">
+                <Link to="/register" className="px-4 py-2 bg-green-700 dark:bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-800 dark:hover:bg-green-700 transition-colors shadow-sm">
                   Registro
                 </Link>
               </>
             )}
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2">
+            
+            <button 
+              onClick={() => setMobileOpen(!mobileOpen)} 
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              aria-label="Menú"
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -116,21 +124,25 @@ function Header() {
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden pb-4 border-t border-green-100 pt-4 animate-fade-in">
+          <div className="lg:hidden pb-4 border-t border-gray-200 dark:border-gray-800 pt-4 animate-fade-in">
             {navLinks.map(link => (
-              <Link key={link.to} to={link.to} className="block py-2 text-sm text-gray-700 hover:text-green-700" onClick={() => setMobileOpen(false)}>
+              <Link 
+                key={link.to} 
+                to={link.to} 
+                className="block py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400"
+                onClick={() => setMobileOpen(false)}
+              >
                 {link.label}
               </Link>
             ))}
             {isAuthenticated ? (
               <>
-                <Link to="/dashboard" className="block py-2 text-sm text-green-700" onClick={() => setMobileOpen(false)}>Estudio</Link>
-                <Link to="/creditos" className="block py-2 text-sm text-green-700" onClick={() => setMobileOpen(false)}>Créditos</Link>
+                <Link to="/dashboard" className="block py-2 text-sm text-green-700 dark:text-green-400" onClick={() => setMobileOpen(false)}>Panel</Link>
               </>
             ) : (
               <>
-                <Link to="/login" className="block py-2 text-sm text-gray-600" onClick={() => setMobileOpen(false)}>Acceder</Link>
-                <Link to="/registro" className="block py-2 text-sm text-green-700 font-medium" onClick={() => setMobileOpen(false)}>Registro</Link>
+                <Link to="/login" className="block py-2 text-sm text-gray-700 dark:text-gray-300" onClick={() => setMobileOpen(false)}>Acceder</Link>
+                <Link to="/register" className="block py-2 text-sm text-green-700 dark:text-green-400 font-medium" onClick={() => setMobileOpen(false)}>Registro</Link>
               </>
             )}
           </div>
@@ -142,7 +154,7 @@ function Header() {
 
 function Footer() {
   return (
-    <footer className="bg-green-900 text-white mt-auto">
+    <footer className="bg-green-900 dark:bg-gray-950 text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -150,37 +162,40 @@ function Footer() {
               <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
                 <span className="font-bold text-sm">AA</span>
               </div>
-              <span className="font-bold">AL-ANDALUS AI</span>
+              <div>
+                <span className="font-bold">ANDALUS STUDIO</span>
+                <span className="text-xs text-green-200 block">by Al-Andalus AI</span>
+              </div>
             </div>
-            <p className="text-green-200 text-sm">INTELLIGENCE · ENGINEERING · EUROPE</p>
-            <p className="text-green-300 text-xs mt-2">Andalus Studio — Plataforma de creación musical inteligente.</p>
+            <p className="text-green-200 text-sm">CREATE · COMPOSE · ORCHESTRATE</p>
+            <p className="text-green-300 text-xs mt-2">Plataforma de creación musical y audiovisual inteligente.</p>
           </div>
           <div>
             <h4 className="font-semibold mb-3 text-green-100">Plataforma</h4>
             <ul className="space-y-2 text-sm text-green-300">
-              <li><Link to="/catalogo" className="hover:text-white">Catálogo</Link></li>
-              <li><Link to="/precios" className="hover:text-white">Precios</Link></li>
-              <li><span className="text-green-500">API (próximamente)</span></li>
+              <li><Link to="/tools" className="hover:text-white">Herramientas</Link></li>
+              <li><Link to="/pricing" className="hover:text-white">Planes</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-white">Cómo funciona</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-3 text-green-100">Legal</h4>
             <ul className="space-y-2 text-sm text-green-300">
-              <li><Link to="/legal/privacidad" className="hover:text-white">Privacidad</Link></li>
-              <li><Link to="/legal/terminos" className="hover:text-white">Términos</Link></li>
+              <li><Link to="/legal/privacy" className="hover:text-white">Privacidad</Link></li>
+              <li><Link to="/legal/terms" className="hover:text-white">Términos</Link></li>
               <li><Link to="/legal/cookies" className="hover:text-white">Cookies</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-3 text-green-100">Estado</h4>
             <ul className="space-y-2 text-sm text-green-300">
-              <li><span className="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-2"></span>FASE 00 — Base</li>
+              <li><span className="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-2"></span>FASE 01 — Interfaz</li>
               <li><span className="inline-block w-2 h-2 rounded-full bg-gray-500 mr-2"></span>API — Pendiente</li>
-              <li><span className="inline-block w-2 h-2 rounded-full bg-gray-500 mr-2"></span>Pagos — Pendiente</li>
+              <li><span className="inline-block w-2 h-2 rounded-full bg-gray-500 mr-2"></span>Motores — Pendiente</li>
             </ul>
           </div>
         </div>
-        <div className="border-t border-green-800 mt-8 pt-6 text-center text-xs text-green-400">
+        <div className="border-t border-green-800 dark:border-gray-800 mt-8 pt-6 text-center text-xs text-green-400">
           © 2025 Al-Andalus AI. Todos los derechos reservados. Producto en desarrollo — sin cobros activos.
         </div>
       </div>
@@ -190,7 +205,7 @@ function Footer() {
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
@@ -199,60 +214,105 @@ function Layout({ children }: { children: React.ReactNode }) {
 }
 
 // ═══════════════════════════════════════════
-// PAGES
+// PÁGINA DE INICIO
 // ═══════════════════════════════════════════
 
 function HomePage() {
+  const { recommend } = useToolRecommender();
+  const [recommendQuery, setRecommendQuery] = useState('');
+  const recommendations = recommendQuery ? recommend(recommendQuery) : [];
+
   return (
     <div className="animate-fade-in">
       {/* Hero */}
-      <section className="bg-hero-gradient pattern-overlay text-white py-20 lg:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-gradient-to-br from-green-700 via-green-800 to-green-900 dark:from-green-900 dark:via-green-950 dark:to-gray-950 text-white py-20 lg:py-32 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(circle at 25px 25px, white 2%, transparent 2%), radial-gradient(circle at 75px 75px, white 2%, transparent 2%)',
+            backgroundSize: '100px 100px'
+          }}></div>
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Creación musical<br />
-              <span className="text-green-200">inteligente</span>
+              TU CREATIVIDAD.<br />
+              <span className="text-green-200">TODA UNA ORQUESTA.</span>
             </h1>
             <p className="text-lg md:text-xl text-green-100 mb-8 max-w-2xl">
-              Andalus Studio combina algoritmos deterministas e inteligencia artificial 
-              para potenciar tu proceso creativo. Composición, MIDI, voz, imagen y más.
+              Compón, transforma, analiza y produce música y contenido creativo con herramientas especializadas en un mismo estudio.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link to="/registro" className="px-6 py-3 bg-white text-green-800 font-semibold rounded-lg hover:bg-green-50 transition-colors">
-                Comenzar gratis
+              <Link to="/tools" className="px-6 py-3 bg-white text-green-800 font-semibold rounded-lg hover:bg-green-50 transition-colors shadow-lg">
+                Explorar herramientas
               </Link>
-              <Link to="/catalogo" className="px-6 py-3 border border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-colors">
-                Ver catálogo
+              <Link to="/studio" className="px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-colors">
+                Descubrir el estudio
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-16 lg:py-24">
+      {/* Categorías */}
+      <section className="py-16 lg:py-24 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-4 text-green-900">Herramientas para cada fase creativa</h2>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">Desde la idea inicial hasta la producción final. Cada herramienta con transparencia total de costes.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-              <div key={key} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <h3 className="text-lg font-semibold mb-2">{label}</h3>
-                <p className="text-sm text-gray-600">
-                  {MOCK_TOOLS.filter(t => t.category === key).length} herramienta(s) en esta categoría.
-                </p>
-              </div>
+          <h2 className="text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">Familias de herramientas</h2>
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
+            10 familias especializadas para cada aspecto de la creación musical y audiovisual.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {FAMILIES.map(family => (
+              <Link
+                key={family.id}
+                to={`/tools?family=${family.id}`}
+                className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 hover:shadow-lg transition-all hover:-translate-y-1 border border-gray-200 dark:border-gray-700"
+              >
+                <div className="text-3xl mb-3">{family.icon}</div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{family.name}</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{family.description}</p>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Transparency */}
-      <section className="py-16 bg-white">
+      {/* Recomendador */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-950">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">¿Qué quieres crear?</h2>
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-800">
+            <input
+              type="text"
+              value={recommendQuery}
+              onChange={e => setRecommendQuery(e.target.value)}
+              placeholder="Ej: Quiero analizar un archivo MIDI, escribir una canción, separar la voz..."
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-800 dark:text-white"
+            />
+            {recommendations.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Herramientas recomendadas:</p>
+                {recommendations.map(tool => (
+                  <Link
+                    key={tool.slug}
+                    to={`/tools/${tool.slug}`}
+                    className="block p-3 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                  >
+                    <span className="font-medium text-green-900 dark:text-green-300">{tool.name}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">— {tool.shortDescription}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Economía y calidad */}
+      <section className="py-16 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold mb-6 text-green-900">Transparencia total</h2>
+              <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Transparencia total</h2>
               <ul className="space-y-4">
                 {[
                   'Cotización antes de ejecutar: sabes lo que cuesta.',
@@ -262,19 +322,19 @@ function HomePage() {
                   'Servidor resuelve precios, nunca el navegador.',
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <span className="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">✓</span>
-                    <span className="text-gray-700">{item}</span>
+                    <span className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">✓</span>
+                    <span className="text-gray-700 dark:text-gray-300">{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="bg-green-50 rounded-xl p-8 border border-green-100">
-              <h3 className="font-semibold text-green-800 mb-4">Circuito empresarial</h3>
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-8 border border-green-200 dark:border-green-800">
+              <h3 className="font-semibold text-green-900 dark:text-green-300 mb-4">Circuito empresarial</h3>
               <div className="space-y-3 text-sm">
                 {['Registro → Verificación email', 'Login → Selección de plan', 'Checkout Stripe TEST → Webhook', 'Entitlement → Cotización créditos', 'Reserva atómica → Ejecución', 'Verificación → Liquidación/Devolución', 'Histórico → Factura'].map((step, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded bg-green-200 text-green-800 flex items-center justify-center text-xs font-bold">{i + 1}</span>
-                    <span className="text-gray-700">{step}</span>
+                    <span className="w-6 h-6 rounded bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 flex items-center justify-center text-xs font-bold">{i + 1}</span>
+                    <span className="text-gray-700 dark:text-gray-300">{step}</span>
                   </div>
                 ))}
               </div>
@@ -283,17 +343,17 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Status */}
-      <section className="py-16">
+      {/* Estado */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-full text-sm text-yellow-800 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-full text-sm text-yellow-800 dark:text-yellow-300 mb-6">
             <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-            FASE 00 — Base completada. Sin integraciones activas.
+            FASE 01 — Interfaz y catálogo completados. Motores pendientes.
           </div>
-          <h2 className="text-2xl font-bold mb-4">Producto en desarrollo</h2>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            Esta es la estructura base del repositorio. No hay cobros activos, 
-            no hay datos reales, no hay integraciones de pago. Todo es demostración y documentación.
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Producto en desarrollo</h2>
+          <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
+            Esta es la interfaz profesional completa. Los motores de ejecución se implementarán en fases posteriores. 
+            No hay cobros activos, no hay datos reales, no hay integraciones de pago.
           </p>
         </div>
       </section>
@@ -301,160 +361,272 @@ function HomePage() {
   );
 }
 
-function CatalogPage() {
-  const [filter, setFilter] = useState<ToolCategory | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+// ═══════════════════════════════════════════
+// PÁGINA DE HERRAMIENTAS (CATÁLOGO)
+// ═══════════════════════════════════════════
 
-  const filtered = MOCK_TOOLS.filter(t => {
-    if (filter !== 'all' && t.category !== filter) return false;
-    if (statusFilter !== 'all' && t.status !== statusFilter) return false;
-    return true;
-  });
+function ToolsPage() {
+  const { tools, filters, updateFilter, resetFilters, stats } = useToolCatalog();
+  const location = useLocation();
+
+  // Leer filtro de familia de la URL
+  const urlFamily = new URLSearchParams(location.search).get('family');
+  if (urlFamily && filters.family !== urlFamily) {
+    updateFilter('family', urlFamily as ToolFamily);
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
-      <h1 className="text-3xl font-bold text-green-900 mb-2">Catálogo de herramientas</h1>
-      <p className="text-gray-600 mb-8">Explora las herramientas disponibles. Las no publicadas se muestran como PRÓXIMAMENTE.</p>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-8">
-        <select
-          value={filter}
-          onChange={e => setFilter(e.target.value as ToolCategory | 'all')}
-          className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
-        >
-          <option value="all">Todas las categorías</option>
-          {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-            <option key={key} value={key}>{label}</option>
-          ))}
-        </select>
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white"
-        >
-          <option value="all">Todos los estados</option>
-          {Object.entries(STATUS_LABELS).map(([key, label]) => (
-            <option key={key} value={key}>{label}</option>
-          ))}
-        </select>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Catálogo de herramientas</h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          {stats.total} herramientas registradas · {stats.filtered} mostradas
+        </p>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map(tool => (
-          <Link
-            key={tool.id}
-            to={`/catalogo/${tool.slug}`}
-            className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all hover:-translate-y-0.5 ${
-              tool.status !== 'PUBLISHED' ? 'opacity-75' : ''
-            }`}
+      {/* Buscador y filtros */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-800 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="lg:col-span-2">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Buscar</label>
+            <input
+              type="text"
+              value={filters.search}
+              onChange={e => updateFilter('search', e.target.value)}
+              placeholder="Nombre, descripción, etiquetas..."
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-800 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Familia</label>
+            <select
+              value={filters.family}
+              onChange={e => updateFilter('family', e.target.value as ToolFamily | 'all')}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white"
+            >
+              <option value="all">Todas</option>
+              {FAMILIES.map(f => (
+                <option key={f.id} value={f.id}>{f.icon} {f.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Estado</label>
+            <select
+              value={filters.status}
+              onChange={e => updateFilter('status', e.target.value as any)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white"
+            >
+              <option value="all">Todos</option>
+              <option value="PLANNED">Planificada</option>
+              <option value="IN_DEVELOPMENT">En desarrollo</option>
+              <option value="TESTING">En pruebas</option>
+              <option value="BETA">Beta</option>
+              <option value="AVAILABLE">Disponible</option>
+              <option value="DISABLED">Desactivada</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Ordenar</label>
+            <select
+              value={`${filters.sortBy}-${filters.sortOrder}`}
+              onChange={e => {
+                const [sortBy, sortOrder] = e.target.value.split('-');
+                updateFilter('sortBy', sortBy as any);
+                updateFilter('sortOrder', sortOrder as any);
+              }}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white"
+            >
+              <option value="name-asc">Nombre A-Z</option>
+              <option value="name-desc">Nombre Z-A</option>
+              <option value="credits-asc">Créditos ↑</option>
+              <option value="credits-desc">Créditos ↓</option>
+            </select>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center justify-between">
+          <button
+            onClick={resetFilters}
+            className="text-sm text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 font-medium"
           >
-            <div className="flex items-start justify-between mb-3">
-              <span className="text-xs text-gray-500">{CATEGORY_LABELS[tool.category]}</span>
-              <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[tool.status]}`}>
-                {tool.status === 'PUBLISHED' ? 'Disponible' : 'PRÓXIMAMENTE'}
-              </span>
-            </div>
-            <h3 className="font-semibold text-lg mb-2 text-gray-900">{tool.name}</h3>
-            <p className="text-sm text-gray-600 mb-4 line-clamp-2">{tool.description}</p>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-green-700">{tool.creditCost} créditos</span>
-              {tool.status !== 'PUBLISHED' && (
-                <span className="text-xs text-gray-400 italic">No disponible aún</span>
-              )}
-            </div>
-          </Link>
-        ))}
+            Limpiar filtros
+          </button>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            Búsqueda tolerante a mayúsculas y acentos
+          </span>
+        </div>
       </div>
 
-      {filtered.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          No hay herramientas con estos filtros.
+      {/* Grid de herramientas */}
+      {tools.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tools.map(tool => (
+            <Link
+              key={tool.id}
+              to={`/tools/${tool.slug}`}
+              className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-800 hover:shadow-md transition-all hover:-translate-y-0.5"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {FAMILIES.find(f => f.id === tool.family)?.icon} {FAMILIES.find(f => f.id === tool.family)?.name}
+                </span>
+                <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(tool.status)}`}>
+                  {getStatusLabel(tool.status)}
+                </span>
+              </div>
+              <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">{tool.name}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">{tool.shortDescription}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                  {tool.estimatedCredits !== null ? `${tool.estimatedCredits} créditos` : 'Coste por definir'}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {tool.accessLevel}
+                </span>
+              </div>
+              {!canToolExecute(tool) && (
+                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                  <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                    ⚠️ Motor no disponible aún
+                  </span>
+                </div>
+              )}
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">No hay herramientas con estos filtros.</p>
+          <button
+            onClick={resetFilters}
+            className="px-4 py-2 bg-green-700 dark:bg-green-600 text-white rounded-lg hover:bg-green-800 dark:hover:bg-green-700 transition-colors"
+          >
+            Limpiar filtros
+          </button>
         </div>
       )}
     </div>
   );
 }
 
+// ═══════════════════════════════════════════
+// PÁGINA DE DETALLE DE HERRAMIENTA
+// ═══════════════════════════════════════════
+
 function ToolDetailPage() {
   const location = useLocation();
   const slug = location.pathname.split('/').pop() || '';
-  const tool = MOCK_TOOLS.find(t => t.slug === slug);
+  const tool = getToolBySlug(slug);
   const { isAuthenticated } = useAuth();
 
   if (!tool) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Herramienta no encontrada</h1>
-        <Link to="/catalogo" className="text-green-700 hover:underline">Volver al catálogo</Link>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Herramienta no encontrada</h1>
+        <Link to="/tools" className="text-green-700 dark:text-green-400 hover:underline">Volver al catálogo</Link>
       </div>
     );
   }
 
+  const family = FAMILIES.find(f => f.id === tool.family);
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
-      <Link to="/catalogo" className="text-sm text-green-700 hover:underline mb-4 inline-block">← Volver al catálogo</Link>
+      <Link to="/tools" className="text-sm text-green-700 dark:text-green-400 hover:underline mb-4 inline-block">← Volver al catálogo</Link>
       
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="bg-hero-gradient p-8 text-white">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="bg-gradient-to-r from-green-700 to-green-900 dark:from-green-900 dark:to-green-950 p-8 text-white">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm text-green-200">{CATEGORY_LABELS[tool.category]}</span>
-            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-              tool.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-            }`}>
-              {STATUS_LABELS[tool.status]}
+            <span className="text-sm text-green-200">{family?.icon} {family?.name}</span>
+            <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(tool.status)}`}>
+              {getStatusLabel(tool.status)}
             </span>
           </div>
           <h1 className="text-3xl font-bold">{tool.name}</h1>
+          <p className="text-green-100 mt-2">{tool.shortDescription}</p>
         </div>
 
         <div className="p-8">
-          <p className="text-gray-700 mb-6">{tool.description}</p>
+          <p className="text-gray-700 dark:text-gray-300 mb-6">{tool.description}</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-green-50 rounded-lg p-4">
-              <span className="text-xs text-green-600 font-medium">Coste por ejecución</span>
-              <p className="text-2xl font-bold text-green-800">{tool.creditCost} créditos</p>
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+              <span className="text-xs text-green-600 dark:text-green-400 font-medium">Coste estimado</span>
+              <p className="text-2xl font-bold text-green-800 dark:text-green-300">
+                {tool.estimatedCredits !== null ? `${tool.estimatedCredits} créditos` : 'Por definir'}
+              </p>
+              <p className="text-xs text-green-600 dark:text-green-400">{getCostPolicyLabel(tool.costPolicy)}</p>
             </div>
-            <div className="bg-blue-50 rounded-lg p-4">
-              <span className="text-xs text-blue-600 font-medium">Estado</span>
-              <p className="text-lg font-semibold text-blue-800">{STATUS_LABELS[tool.status]}</p>
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Modo de ejecución</span>
+              <p className="text-lg font-semibold text-blue-800 dark:text-blue-300">{tool.executionMode}</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <span className="text-xs text-gray-600 font-medium">Categoría</span>
-              <p className="text-lg font-semibold text-gray-800">{CATEGORY_LABELS[tool.category].split(' ')[0]}</p>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Nivel de acceso</span>
+              <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">{tool.accessLevel}</p>
             </div>
           </div>
 
-          {tool.status === 'PUBLISHED' ? (
+          {/* Capacidades */}
+          {tool.capabilities.length > 0 && (
+            <div className="mb-8">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Capacidades</h3>
+              <div className="space-y-2">
+                {tool.capabilities.map(cap => (
+                  <div key={cap.id} className="flex items-start gap-2">
+                    <span className="text-green-600 dark:text-green-400 mt-1">•</span>
+                    <div>
+                      <span className="font-medium text-gray-900 dark:text-white">{cap.name}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">{cap.description}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Limitaciones */}
+          {tool.limitations.length > 0 && (
+            <div className="mb-8">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Limitaciones</h3>
+              <ul className="space-y-1">
+                {tool.limitations.map((lim, i) => (
+                  <li key={i} className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2">
+                    <span className="text-amber-600 dark:text-amber-400">⚠</span> {lim}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Estado de ejecución */}
+          {canToolExecute(tool) ? (
             isAuthenticated ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                <h3 className="font-semibold text-green-800 mb-2">Ejecutar herramienta</h3>
-                <p className="text-sm text-green-700 mb-4">
-                  Se te cotizará el coste antes de ejecutar. Los créditos se reservan atómicamente 
-                  y se liberan si hay error.
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                <h3 className="font-semibold text-green-800 dark:text-green-300 mb-2">Ejecutar herramienta</h3>
+                <p className="text-sm text-green-700 dark:text-green-400 mb-4">
+                  Se te cotizará el coste antes de ejecutar. Los créditos se reservan atómicamente y se liberan si hay error.
                 </p>
-                <button className="px-6 py-3 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition-colors">
-                  Ejecutar ({tool.creditCost} créditos)
+                <button className="px-6 py-3 bg-green-700 dark:bg-green-600 text-white font-medium rounded-lg hover:bg-green-800 dark:hover:bg-green-700 transition-colors">
+                  Ejecutar ({tool.estimatedCredits || '?'} créditos)
                 </button>
-                <p className="text-xs text-green-600 mt-3">
-                  ⚠️ SIMULADO — No se ejecuta nada en esta demo.
+                <p className="text-xs text-green-600 dark:text-green-400 mt-3">
+                  ⚠️ SIMULADO — El motor de ejecución se implementará en fases posteriores.
                 </p>
               </div>
             ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                <p className="text-gray-600 mb-4">Inicia sesión para ejecutar esta herramienta.</p>
-                <Link to="/login" className="px-6 py-3 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition-colors inline-block">
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Inicia sesión para ejecutar esta herramienta.</p>
+                <Link to="/login" className="px-6 py-3 bg-green-700 dark:bg-green-600 text-white font-medium rounded-lg hover:bg-green-800 dark:hover:bg-green-700 transition-colors inline-block">
                   Acceder
                 </Link>
               </div>
             )
           ) : (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-              <p className="text-yellow-800 font-medium">PRÓXIMAMENTE</p>
-              <p className="text-sm text-yellow-700 mt-1">
-                Esta herramienta está en estado "{STATUS_LABELS[tool.status]}" y aún no está disponible.
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6 text-center">
+              <p className="text-amber-800 dark:text-amber-300 font-medium">ESTA HERRAMIENTA ESTÁ EN DESARROLLO</p>
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                Estado: "{getStatusLabel(tool.status)}". El motor de ejecución aún no está disponible.
               </p>
             </div>
           )}
@@ -464,84 +636,52 @@ function ToolDetailPage() {
   );
 }
 
-function PricingPage() {
-  const { isAuthenticated } = useAuth();
-  const [yearly, setYearly] = useState(false);
+// ═══════════════════════════════════════════
+// OTRAS PÁGINAS (resumidas para ahorrar espacio)
+// ═══════════════════════════════════════════
 
+function PricingPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
       <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold text-green-900 mb-4">Planes y precios</h1>
-        <p className="text-gray-600 max-w-xl mx-auto mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Planes y precios</h1>
+        <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
           Precios orientativos. El servidor resuelve precios reales. Sin cobros excedentes automáticos.
         </p>
-        <div className="inline-flex items-center gap-3 bg-white rounded-lg p-1 border border-gray-200">
-          <button
-            onClick={() => setYearly(false)}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${!yearly ? 'bg-green-700 text-white' : 'text-gray-600'}`}
-          >
-            Mensual
-          </button>
-          <button
-            onClick={() => setYearly(true)}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${yearly ? 'bg-green-700 text-white' : 'text-gray-600'}`}
-          >
-            Anual <span className="text-xs opacity-75">(-17%)</span>
-          </button>
-        </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {DEMO_PLANS.map((plan, i) => (
-          <div
-            key={plan.id}
-            className={`bg-white rounded-xl p-6 border ${
-              i === 2 ? 'border-green-500 shadow-lg ring-2 ring-green-100' : 'border-gray-100 shadow-sm'
-            } flex flex-col`}
-          >
-            {i === 2 && <span className="text-xs font-bold text-green-700 mb-2">RECOMENDADO</span>}
-            <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
+          <div key={plan.id} className={`bg-white dark:bg-gray-900 rounded-xl p-6 border ${i === 2 ? 'border-green-500 shadow-lg ring-2 ring-green-100 dark:ring-green-900' : 'border-gray-200 dark:border-gray-800 shadow-sm'} flex flex-col`}>
+            {i === 2 && <span className="text-xs font-bold text-green-700 dark:text-green-400 mb-2">RECOMENDADO</span>}
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{plan.name}</h3>
             <div className="mt-4 mb-6">
               {plan.priceMonthly === -1 ? (
-                <span className="text-2xl font-bold text-gray-900">Custom</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">Custom</span>
               ) : plan.priceMonthly === 0 ? (
-                <span className="text-2xl font-bold text-gray-900">Gratis</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">Gratis</span>
               ) : (
                 <>
-                  <span className="text-3xl font-bold text-gray-900">
-                    {yearly ? (plan.priceYearly / 1200).toFixed(0) : (plan.priceMonthly / 100).toFixed(0)}€
-                  </span>
-                  <span className="text-sm text-gray-500">/mes</span>
+                  <span className="text-3xl font-bold text-gray-900 dark:text-white">{(plan.priceMonthly / 100).toFixed(0)}€</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">/mes</span>
                 </>
               )}
             </div>
-            <ul className="space-y-2 text-sm text-gray-600 flex-1 mb-6">
+            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 flex-1 mb-6">
               {plan.features.map((f, j) => (
                 <li key={j} className="flex items-center gap-2">
-                  <span className="text-green-600">✓</span> {f}
+                  <span className="text-green-600 dark:text-green-400">✓</span> {f}
                 </li>
               ))}
-              <li className="flex items-center gap-2">
-                <span className="text-green-600">✓</span> {plan.creditsMonthly > 0 ? `${plan.creditsMonthly} créditos/mes` : 'Créditos limitados'}
-              </li>
             </ul>
-            {isAuthenticated ? (
-              <Link to="/dashboard" className="block text-center px-4 py-2.5 bg-green-700 text-white text-sm font-medium rounded-lg hover:bg-green-800 transition-colors">
-                {i === 0 ? 'Plan actual' : 'Seleccionar'}
-              </Link>
-            ) : (
-              <Link to="/registro" className="block text-center px-4 py-2.5 bg-green-700 text-white text-sm font-medium rounded-lg hover:bg-green-800 transition-colors">
-                Comenzar
-              </Link>
-            )}
+            <Link to="/register" className="block text-center px-4 py-2.5 bg-green-700 dark:bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-800 dark:hover:bg-green-700 transition-colors">
+              Comenzar
+            </Link>
           </div>
         ))}
       </div>
-
-      <div className="mt-12 bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-        <p className="text-sm text-yellow-800">
-          <strong>⚠️ AVISO:</strong> Los precios mostrados son orientativos. No se realizan cobros reales. 
-          Stripe TEST se activará en FASE 03 tras pruebas completas.
+      <div className="mt-12 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 text-center">
+        <p className="text-sm text-yellow-800 dark:text-yellow-300">
+          <strong>⚠️ AVISO:</strong> Los precios mostrados son orientativos. No se realizan cobros reales. Stripe TEST se activará en FASE 03.
         </p>
       </div>
     </div>
@@ -552,63 +692,38 @@ function LoginPage() {
   const { login, isAuthenticated } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
 
   if (isAuthenticated) return <Navigate to="/dashboard" />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     await login(email, password);
-    setLoading(false);
   };
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-12 animate-fade-in">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-          <h1 className="text-2xl font-bold text-green-900 mb-2">Acceder</h1>
-          <p className="text-sm text-gray-600 mb-6">Inicia sesión en tu cuenta de Andalus Studio.</p>
-
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-8">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Acceder</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Inicia sesión en tu cuenta de Andalus Studio.</p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                placeholder="tu@email.com"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-800 dark:text-white" placeholder="tu@email.com" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                placeholder="••••••••"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contraseña</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-800 dark:text-white" placeholder="••••••••" />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full px-4 py-3 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Accediendo...' : 'Acceder'}
+            <button type="submit" className="w-full px-4 py-3 bg-green-700 dark:bg-green-600 text-white font-medium rounded-lg hover:bg-green-800 dark:hover:bg-green-700 transition-colors">
+              Acceder
             </button>
           </form>
-
-          <div className="mt-6 text-center text-sm text-gray-600">
-            ¿No tienes cuenta?{' '}
-            <Link to="/registro" className="text-green-700 font-medium hover:underline">Regístrate</Link>
+          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+            ¿No tienes cuenta? <Link to="/register" className="text-green-700 dark:text-green-400 font-medium hover:underline">Regístrate</Link>
           </div>
-
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700">
-            <strong>DEMO:</strong> Usa cualquier email/contraseña. No hay autenticación real.
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg text-xs text-blue-700 dark:text-blue-300">
+            <strong>DEMO:</strong> Autenticación simulada. No hay backend real.
           </div>
         </div>
       </div>
@@ -621,83 +736,39 @@ function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
 
   if (isAuthenticated) return <Navigate to="/dashboard" />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     await register(email, password, name);
-    setLoading(false);
   };
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-12 animate-fade-in">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-          <h1 className="text-2xl font-bold text-green-900 mb-2">Crear cuenta</h1>
-          <p className="text-sm text-gray-600 mb-6">Regístrate para empezar a usar Andalus Studio.</p>
-
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-8">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Crear cuenta</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Regístrate para empezar a usar Andalus Studio.</p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-              <input
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                placeholder="Tu nombre"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre</label>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-800 dark:text-white" placeholder="Tu nombre" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                placeholder="tu@email.com"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-800 dark:text-white" placeholder="tu@email.com" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                minLength={8}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                placeholder="Mínimo 8 caracteres"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contraseña</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-800 dark:text-white" placeholder="Mínimo 8 caracteres" />
             </div>
-            <div className="flex items-start gap-2">
-              <input type="checkbox" required className="mt-1" id="terms" />
-              <label htmlFor="terms" className="text-xs text-gray-600">
-                Acepto los <Link to="/legal/terminos" className="text-green-700 underline">términos</Link> y la{' '}
-                <Link to="/legal/privacidad" className="text-green-700 underline">política de privacidad</Link>.
-              </label>
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full px-4 py-3 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Registrando...' : 'Crear cuenta'}
+            <button type="submit" className="w-full px-4 py-3 bg-green-700 dark:bg-green-600 text-white font-medium rounded-lg hover:bg-green-800 dark:hover:bg-green-700 transition-colors">
+              Crear cuenta
             </button>
           </form>
-
-          <div className="mt-6 text-center text-sm text-gray-600">
-            ¿Ya tienes cuenta?{' '}
-            <Link to="/login" className="text-green-700 font-medium hover:underline">Acceder</Link>
-          </div>
-
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-100 rounded-lg text-xs text-yellow-700">
-            <strong>AVISO:</strong> Registro simulado. No se crea ninguna cuenta real. 
-            En producción: verificación de email obligatoria.
+          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+            ¿Ya tienes cuenta? <Link to="/login" className="text-green-700 dark:text-green-400 font-medium hover:underline">Acceder</Link>
           </div>
         </div>
       </div>
@@ -706,369 +777,65 @@ function RegisterPage() {
 }
 
 function DashboardPage() {
-  const { isAuthenticated, user, organization, entitlement, wallet } = useAuth();
-
+  const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" />;
-
-  const creditsPercent = entitlement ? (entitlement.creditsUsed / entitlement.creditsTotal) * 100 : 0;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-green-900">Estudio</h1>
-        <p className="text-gray-600">Bienvenido/a, {user?.name}. Organización: {organization?.name}.</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <span className="text-xs text-gray-500 font-medium">Plan</span>
-          <p className="text-2xl font-bold text-green-800">Creator</p>
-        </div>
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <span className="text-xs text-gray-500 font-medium">Créditos disponibles</span>
-          <p className="text-2xl font-bold text-green-800">{wallet?.balance ?? 0}</p>
-        </div>
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <span className="text-xs text-gray-500 font-medium">Consumido este mes</span>
-          <p className="text-2xl font-bold text-gray-800">{entitlement?.creditsUsed ?? 0}</p>
-        </div>
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <span className="text-xs text-gray-500 font-medium">Miembros</span>
-          <p className="text-2xl font-bold text-gray-800">1</p>
-        </div>
-      </div>
-
-      {/* Credits bar */}
-      <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">Uso de créditos mensuales</span>
-          <span className="text-sm text-gray-500">{entitlement?.creditsUsed} / {entitlement?.creditsTotal}</span>
-        </div>
-        <div className="w-full bg-gray-100 rounded-full h-3">
-          <div
-            className="bg-green-600 h-3 rounded-full transition-all"
-            style={{ width: `${Math.min(creditsPercent, 100)}%` }}
-          />
-        </div>
-        <p className="text-xs text-gray-500 mt-2">
-          {entitlement && (entitlement.creditsTotal - entitlement.creditsUsed)} créditos restantes este periodo.
-        </p>
-      </div>
-
-      {/* Quick actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Link to="/catalogo" className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <h3 className="font-semibold text-gray-900 mb-1">🎵 Catálogo</h3>
-          <p className="text-sm text-gray-600">Explora y ejecuta herramientas.</p>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Panel de control</h1>
+      <p className="text-gray-600 dark:text-gray-400">Bienvenido/a, {user?.name}.</p>
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link to="/tools" className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">🎵 Catálogo</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Explora herramientas.</p>
         </Link>
-        <Link to="/creditos" className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <h3 className="font-semibold text-gray-900 mb-1">💰 Créditos</h3>
-          <p className="text-sm text-gray-600">Ver movimientos y consumo.</p>
+        <Link to="/pricing" className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">💰 Planes</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Ver opciones premium.</p>
         </Link>
-        <Link to="/perfil" className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <h3 className="font-semibold text-gray-900 mb-1">⚙️ Perfil</h3>
-          <p className="text-sm text-gray-600">Gestiona tu cuenta y organización.</p>
+        <Link to="/tools" className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">🚀 Empezar</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Prueba las herramientas.</p>
         </Link>
-      </div>
-
-      {/* Recent activity */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Actividad reciente</h2>
-        </div>
-        <div className="divide-y divide-gray-50">
-          {MOCK_LEDGER.slice(0, 5).map(entry => (
-            <div key={entry.id} className="px-6 py-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-900">{entry.description}</p>
-                <p className="text-xs text-gray-500">{new Date(entry.createdAt).toLocaleDateString('es-ES')}</p>
-              </div>
-              <span className={`text-sm font-medium ${entry.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {entry.amount > 0 ? '+' : ''}{entry.amount}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700">
-        <strong>DEMO:</strong> Datos simulados. En producción, todo viene del servidor vía API.
       </div>
     </div>
   );
 }
 
-function CreditsPage() {
-  const { isAuthenticated, wallet, entitlement } = useAuth();
-  const [tab, setTab] = useState<'ledger' | 'usage'>('ledger');
-
-  if (!isAuthenticated) return <Navigate to="/login" />;
-
+function StudioPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
-      <h1 className="text-3xl font-bold text-green-900 mb-2">Créditos y uso</h1>
-      <p className="text-gray-600 mb-8">Transparencia total: cada movimiento registrado en el ledger.</p>
-
-      {/* Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <span className="text-xs text-gray-500">Saldo actual</span>
-          <p className="text-3xl font-bold text-green-800">{wallet?.balance ?? 0}</p>
-          <p className="text-xs text-gray-500">créditos</p>
-        </div>
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <span className="text-xs text-gray-500">Total del plan</span>
-          <p className="text-3xl font-bold text-gray-800">{entitlement?.creditsTotal ?? 0}</p>
-          <p className="text-xs text-gray-500">créditos/mes</p>
-        </div>
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <span className="text-xs text-gray-500">Consumido</span>
-          <p className="text-3xl font-bold text-gray-800">{entitlement?.creditsUsed ?? 0}</p>
-          <p className="text-xs text-gray-500">este periodo</p>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setTab('ledger')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'ledger' ? 'bg-green-700 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}
-        >
-          Libro de movimientos
-        </button>
-        <button
-          onClick={() => setTab('usage')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === 'usage' ? 'bg-green-700 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}
-        >
-          Uso por herramienta
-        </button>
-      </div>
-
-      {/* Ledger */}
-      {tab === 'ledger' && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase">Cantidad</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase">Saldo</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {MOCK_LEDGER.map(entry => (
-                <tr key={entry.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-600">{new Date(entry.createdAt).toLocaleDateString('es-ES')}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      entry.type === 'CREDIT' ? 'bg-green-100 text-green-700' :
-                      entry.type === 'DEBIT' ? 'bg-red-100 text-red-700' :
-                      entry.type === 'HOLD' ? 'bg-yellow-100 text-yellow-700' :
-                      entry.type === 'RELEASE' ? 'bg-blue-100 text-blue-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {entry.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{entry.description}</td>
-                  <td className={`px-6 py-4 text-sm text-right font-medium ${entry.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {entry.amount > 0 ? '+' : ''}{entry.amount}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-right text-gray-600">{entry.balanceAfter}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {tab === 'usage' && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <div className="space-y-4">
-            {[
-              { name: 'Generador Melódico', count: 3, credits: 30 },
-              { name: 'Motor de Armonía', count: 1, credits: 15 },
-              { name: 'Gen. Patrones MIDI', count: 1, credits: 8 },
-              { name: 'Analizador de Rima', count: 1, credits: 5 },
-              { name: 'Gen. Portadas', count: 1, credits: 15 },
-              { name: 'Ear Training', count: 1, credits: 3 },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                  <p className="text-xs text-gray-500">{item.count} ejecuciones</p>
-                </div>
-                <span className="text-sm font-medium text-gray-700">{item.credits} créditos</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="mt-6 p-4 bg-yellow-50 border border-yellow-100 rounded-lg text-xs text-yellow-700">
-        <strong>AVISO:</strong> Datos simulados. En producción, el ledger es inmutable y viene del servidor.
-        No se pueden modificar movimientos pasados.
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Estudio integrado</h1>
+      <p className="text-gray-600 dark:text-gray-400 mb-8">Gestión de proyectos, grabaciones y exportaciones. Próximamente.</p>
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-8 text-center">
+        <p className="text-amber-800 dark:text-amber-300 font-medium">EN DESARROLLO</p>
+        <p className="text-sm text-amber-700 dark:text-amber-400 mt-2">El estudio integrado se implementará en fases posteriores.</p>
       </div>
     </div>
   );
 }
 
-function ProfilePage() {
-  const { isAuthenticated, user, organization } = useAuth();
-
-  if (!isAuthenticated) return <Navigate to="/login" />;
-
+function HowItWorksPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
-      <h1 className="text-3xl font-bold text-green-900 mb-8">Perfil y organización</h1>
-
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Cómo funciona</h1>
       <div className="space-y-6">
-        {/* User info */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Información personal</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Nombre</label>
-              <input type="text" defaultValue={user?.name || ''} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Email</label>
-              <input type="email" defaultValue={user?.email || ''} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50" disabled />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${user?.emailVerified ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
-            <span className="text-xs text-gray-600">
-              {user?.emailVerified ? 'Email verificado' : 'Email no verificado'}
-            </span>
-          </div>
-          <button className="mt-4 px-4 py-2 bg-green-700 text-white text-sm font-medium rounded-lg hover:bg-green-800 transition-colors">
-            Guardar cambios
-          </button>
-        </div>
-
-        {/* Organization */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Organización</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Nombre</label>
-              <input type="text" defaultValue={organization?.name || ''} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Slug</label>
-              <input type="text" defaultValue={organization?.slug || ''} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50" disabled />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Miembros</h3>
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-sm font-bold">
-                {user?.name?.charAt(0) || 'U'}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-500">OWNER</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Billing */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Facturación</h2>
-          <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg mb-4">
-            <div>
-              <p className="text-sm font-medium text-green-800">Plan Creator — 19€/mes</p>
-              <p className="text-xs text-green-600">Próximo cobro: 1 julio 2025</p>
-            </div>
-            <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Activo</span>
-          </div>
-          <div className="flex gap-3">
-            <Link to="/precios" className="px-4 py-2 border border-gray-200 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-              Cambiar plan
-            </Link>
-            <button className="px-4 py-2 border border-gray-200 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-              Portal de facturación
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 mt-3">
-            En producción: Stripe Customer Portal para gestionar suscripción.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700">
-        <strong>DEMO:</strong> Perfil simulado. En producción, los cambios se guardan vía API.
-      </div>
-    </div>
-  );
-}
-
-function AdminPage() {
-  const { isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) return <Navigate to="/login" />;
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
-      <h1 className="text-3xl font-bold text-green-900 mb-2">Administración</h1>
-      <p className="text-gray-600 mb-8">Panel de administración (requiere rol OWNER/ADMIN).</p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {[
-          { title: 'Usuarios', count: '1', desc: 'Usuarios registrados' },
-          { title: 'Organizaciones', count: '1', desc: 'Tenants activos' },
-          { title: 'Herramientas', count: `${MOCK_TOOLS.length}`, desc: 'En catálogo' },
-          { title: 'Publicadas', count: `${MOCK_TOOLS.filter(t => t.status === 'PUBLISHED').length}`, desc: 'Disponibles' },
-          { title: 'Stripe Events', count: '0', desc: 'Webhooks procesados' },
-          { title: 'Audit Events', count: '0', desc: 'Eventos de auditoría' },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-            <span className="text-xs text-gray-500">{stat.desc}</span>
-            <p className="text-2xl font-bold text-gray-900">{stat.count}</p>
-            <p className="text-sm text-gray-600">{stat.title}</p>
+          { step: 1, title: 'Registro y verificación', desc: 'Crea tu cuenta y verifica tu email.' },
+          { step: 2, title: 'Selecciona un plan', desc: 'Elige el plan que mejor se adapte a tus necesidades.' },
+          { step: 3, title: 'Explora el catálogo', desc: 'Descubre las herramientas disponibles por familia.' },
+          { step: 4, title: 'Ejecuta herramientas', desc: 'Cada ejecución se cotiza antes de procesar.' },
+          { step: 5, title: 'Recibe resultados', desc: 'Descarga artefactos y revisa el consumo de créditos.' },
+          { step: 6, title: 'Gestiona tu cuenta', desc: 'Consulta tu historial, créditos y facturación.' },
+        ].map(item => (
+          <div key={item.step} className="flex gap-4">
+            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 flex items-center justify-center font-bold flex-shrink-0">{item.step}</div>
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-white">{item.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400">{item.desc}</p>
+            </div>
           </div>
         ))}
-      </div>
-
-      {/* Tool management */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Gestión de herramientas</h2>
-        </div>
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Nombre</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Categoría</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Estado</th>
-              <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase">Coste</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {MOCK_TOOLS.map(tool => (
-              <tr key={tool.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">{tool.name}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{CATEGORY_LABELS[tool.category]}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[tool.status]}`}>
-                    {STATUS_LABELS[tool.status]}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-right text-gray-600">{tool.creditCost}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mt-6 p-4 bg-yellow-50 border border-yellow-100 rounded-lg text-xs text-yellow-700">
-        <strong>AVISO:</strong> Panel de administración simulado. En producción: acceso restringido por rol, 
-        gestión real de herramientas, usuarios y eventos Stripe.
       </div>
     </div>
   );
@@ -1076,65 +843,26 @@ function AdminPage() {
 
 function LegalPage() {
   const location = useLocation();
-  const type = location.pathname.split('/').pop() || 'terminos';
-
-  const content: Record<string, { title: string; sections: { heading: string; text: string }[] }> = {
-    privacidad: {
-      title: 'Política de Privacidad',
-      sections: [
-        { heading: 'Responsable', text: 'Al-Andalus AI es el responsable del tratamiento de tus datos personales.' },
-        { heading: 'Datos recopilados', text: 'Email, nombre, datos de uso de la plataforma, datos de facturación (a través de Stripe, sin almacenar datos de tarjetas).' },
-        { heading: 'Finalidad', text: 'Prestación del servicio, facturación, mejora del producto, cumplimiento legal.' },
-        { heading: 'Derechos', text: 'Acceso, rectificación, supresión, portabilidad, limitación y oposición. Contacta con privacy@andalus.ai.' },
-        { heading: 'Conservación', text: 'Los datos se conservan mientras la cuenta esté activa y durante los plazos legales posteriores.' },
-        { heading: 'Seguridad', text: 'Medidas técnicas y organizativas según OWASP. Cifrado en tránsito y en reposo.' },
-      ],
-    },
-    terminos: {
-      title: 'Términos y Condiciones',
-      sections: [
-        { heading: 'Servicio', text: 'Andalus Studio es una plataforma de herramientas de creación musical asistida por IA y algoritmos.' },
-        { heading: 'Cuentas', text: 'Cada usuario es responsable de su cuenta. Prohibido compartir credenciales.' },
-        { heading: 'Créditos', text: 'Los créditos son una unidad de consumo interna. No tienen valor monetario fuera de la plataforma. No son transferibles.' },
-        { heading: 'Contenido generado', text: 'El usuario mantiene los derechos del contenido generado, sujeto a las licencias de las herramientas utilizadas.' },
-        { heading: 'Contenido de terceros', text: 'No subir contenido de terceros sin autorización. La plataforma puede eliminar contenido infractor.' },
-        { heading: 'Limitación de responsabilidad', text: 'El servicio se proporciona "tal cual". No garantizamos resultados específicos.' },
-        { heading: 'Modificaciones', text: 'Podemos modificar estos términos. Se notificará con antelación.' },
-      ],
-    },
-    cookies: {
-      title: 'Política de Cookies',
-      sections: [
-        { heading: 'Cookies esenciales', text: 'Necesarias para el funcionamiento de la plataforma (sesión, CSRF). No se pueden desactivar.' },
-        { heading: 'Cookies analíticas', text: 'Para medir el uso de la plataforma. Requieren consentimiento.' },
-        { heading: 'Gestión', text: 'Puedes configurar tu navegador para rechazar cookies. Algunas funciones pueden no estar disponibles.' },
-      ],
-    },
+  const type = location.pathname.split('/').pop() || 'terms';
+  const content: Record<string, { title: string; text: string }> = {
+    privacy: { title: 'Política de Privacidad', text: 'Documento en preparación. Requiere revisión legal antes de producción.' },
+    terms: { title: 'Términos y Condiciones', text: 'Documento en preparación. Requiere revisión legal antes de producción.' },
+    cookies: { title: 'Política de Cookies', text: 'Documento en preparación. Requiere revisión legal antes de producción.' },
   };
-
-  const page = content[type] || content.terminos;
+  const page = content[type] || content.terms;
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
-      <h1 className="text-3xl font-bold text-green-900 mb-8">{page.title}</h1>
-      <div className="space-y-6">
-        {page.sections.map((section, i) => (
-          <div key={i}>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">{section.heading}</h2>
-            <p className="text-gray-700">{section.text}</p>
-          </div>
-        ))}
-      </div>
-      <div className="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600">
-        <strong>AVISO:</strong> Estos textos son placeholder. Requieren revisión legal antes de producción.
-        No constituyen asesoramiento legal.
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">{page.title}</h1>
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-8">
+        <p className="text-gray-700 dark:text-gray-300">{page.text}</p>
       </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════
-// APP
+// APP PRINCIPAL
 // ═══════════════════════════════════════════
 
 function AppContent() {
@@ -1142,21 +870,25 @@ function AppContent() {
     <Layout>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/catalogo" element={<CatalogPage />} />
-        <Route path="/catalogo/:slug" element={<ToolDetailPage />} />
-        <Route path="/precios" element={<PricingPage />} />
+        <Route path="/tools" element={<ToolsPage />} />
+        <Route path="/tools/:slug" element={<ToolDetailPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/registro" element={<RegisterPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/creditos" element={<CreditsPage />} />
-        <Route path="/perfil" element={<ProfilePage />} />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/studio" element={<StudioPage />} />
+        <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/billing" element={<BillingPage />} />
+        <Route path="/credits" element={<CreditsPage />} />
+        <Route path="/subscription" element={<SubscriptionPage />} />
         <Route path="/legal/:type" element={<LegalPage />} />
         <Route path="*" element={
           <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-            <p className="text-gray-600 mb-6">Página no encontrada.</p>
-            <Link to="/" className="text-green-700 hover:underline">Volver al inicio</Link>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">404</h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Página no encontrada.</p>
+            <Link to="/" className="text-green-700 dark:text-green-400 hover:underline">Volver al inicio</Link>
           </div>
         } />
       </Routes>
@@ -1167,9 +899,11 @@ function AppContent() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

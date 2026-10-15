@@ -27,10 +27,9 @@
 - **Pagos (previsto):** Stripe TEST → LIVE tras aprobación humana
 - **Tests (previsto):** Vitest + Playwright
 
-## Estado actual: FASE 00 COMPLETADA
+## Estado actual: FASE 02 IMPLEMENTADA
 
-Estructura base, modelo de datos, contratos, planes, catálogo y frontend de demostración creados.
-Sin integraciones activas. Sin cobros. Sin datos reales.
+Backend Fastify completo con autenticación real (registro, login, verificación email, recuperación contraseña), sesiones seguras con cookies HttpOnly, protección CSRF, rate limiting, hashing Argon2id. Primera herramienta musical (calculadora MIDI) implementada con tests. Frontend aún no conectado a API real. PostgreSQL y ejecución de tests pendientes.
 
 ## Reglas permanentes
 

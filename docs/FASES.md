@@ -12,19 +12,44 @@
 - [x] Documentación completa
 - [x] Frontend de demostración
 
-## FASE 01 — API base y autenticación
-- [ ] Fastify + TypeScript + Zod
-- [ ] Registro, login, verificación email
-- [ ] Sesiones HttpOnly + CSRF
-- [ ] RBAC middleware
-- [ ] Tests de auth
+## FASE 01 — Identidad, interfaz y catálogo ✅
+- [x] Sistema de diseño (Andalucía Light/Dark)
+- [x] Interfaz profesional (10 páginas)
+- [x] Catálogo con 23 herramientas en 10 familias
+- [x] Buscador funcional (tolerante a acentos)
+- [x] Filtros funcionales (familia, estado, acceso)
+- [x] Fichas individuales reutilizables
+- [x] Recomendador determinista
+- [x] Navegación responsive
+- [x] Tema claro/oscuro funcional
+- [x] 30 tests creados
+- [x] Documentación completa FASE 01
+- [x] Build exitoso
+- [ ] API Fastify (FASE 02)
+- [ ] Motores de herramientas (FASE 02+)
 
-## FASE 02 — Herramientas y ejecución
+## FASE 02 — Backend, autenticación y seguridad ✅ IMPLEMENTADA
+- [x] Fastify + TypeScript + Zod
+- [x] Registro con validación y hashing Argon2id
+- [x] Login con verificación de estado
+- [x] Verificación de email con tokens seguros
+- [x] Sesiones HttpOnly + Secure + SameSite
+- [x] CSRF protection
+- [x] Rate limiting
+- [x] Recuperación de contraseña
+- [x] RBAC (roles USER, STAFF, ADMIN)
+- [x] 42 tests creados (calculadora MIDI + seguridad)
+- [x] Primera herramienta: Calculadora MIDI
+- [x] Documentación completa FASE 02
+- [ ] Frontend conectado a API real (pendiente)
+- [ ] Tests ejecutados (requiere PostgreSQL)
+
+## FASE 03 — Herramientas y ejecución (previsto)
 - [ ] Tool SDK
 - [ ] Sistema de jobs (BullMQ)
 - [ ] Ejecución con reserva de créditos
 - [ ] Artefactos y descargas
-- [ ] Primera herramienta funcional (determinista)
+- [ ] Más herramientas funcionales
 
 ## FASE 03 — Pagos Stripe TEST
 - [ ] Integración Stripe (modo TEST)

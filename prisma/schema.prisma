@@ -16,23 +16,29 @@ datasource db {
 // ═══════════════════════════════════════════
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  passwordHash  String
-  name          String?
-  avatarUrl     String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+  id                String    @id @default(uuid())
+  email             String    @unique
+  emailVerifiedAt   DateTime?
+  passwordHash      String
+  displayName       String
+  role              String    @default("USER") // USER, STAFF, ADMIN
+  status            String    @default("PENDING_VERIFICATION") // PENDING_VERIFICATION, ACTIVE, SUSPENDED, DISABLED
+  avatarUrl         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastLoginAt       DateTime?
+  deletedAt         DateTime?
 
-  sessions          Session[]
-  emailVerifications EmailVerification[]
-  passwordResets    PasswordReset[]
-  memberships       Membership[]
-  auditEvents       AuditEvent[]
+  sessions            Session[]
+  emailVerifications  EmailVerification[]
+  passwordResets      PasswordReset[]
+  memberships         Membership[]
+  auditEvents         AuditEvent[]
+  loginAttempts       LoginAttempt[]
+  securityEvents      SecurityEvent[]
 
   @@index([email])
+  @@index([status])
 }
 
 model Session {
@@ -418,6 +424,45 @@ model AuditEvent {
 
   @@index([userId])
   @@index([organizationId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ═══════════════════════════════════════════
+// SEGURIDAD
+// ═══════════════════════════════════════════
+
+model LoginAttempt {
+  id        String   @id @default(uuid())
+  userId    String?
+  email     String
+  ip        String
+  success   Boolean
+  reason    String?  // "invalid_password", "account_suspended", etc.
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([email])
+  @@index([ip])
+  @@index([createdAt])
+}
+
+model SecurityEvent {
+  id        String   @id @default(uuid())
+  userId    String?
+  sessionId String?
+  action    String   // "login_failed", "session_revoked", "password_changed", etc.
+  ip        String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionId])
   @@index([action])
   @@index([createdAt])
 }
