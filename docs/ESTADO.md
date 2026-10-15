@@ -1,12 +1,12 @@
 # ESTADO — Andalus Studio
 
-## Fecha última actualización: FASE 05 implementada (con limitaciones documentadas)
+## Fecha última actualización: FASE 05.1 implementada (con limitaciones documentadas)
 
 ### Estado general
 
 | Componente | Estado | Notas |
 |-----------|--------|-------|
-| Documentación | ✅ COMPLETO | Todos los docs FASE 00-05 |
+| Documentación | ✅ COMPLETO | Todos los docs FASE 00-05.1 |
 | Modelo de datos | ✅ ACTUALIZADO | Schema Prisma con sistema comercial completo |
 | Contratos API | ✅ IMPLEMENTADOS | Endpoints de auth, billing, créditos |
 | Backend Fastify | ✅ IMPLEMENTADO | Código completo, pendiente de ejecución |
@@ -23,8 +23,11 @@
 | Metrónomo | ✅ IMPLEMENTADO | Web Audio API, certificado |
 | Afinador | ✅ IMPLEMENTADO | Autocorrelación, certificado |
 | Calculadora Intervalos | ✅ IMPLEMENTADA | Teoría musical, certificada |
-| Herramientas Bloqueadas | ❌ 18 BLOQUEADAS | Requieren IA/DSP/APIs externas |
-| Tests | ✅ CREADOS | 96+ tests totales, no ejecutados |
+| Analizador Métrica | ✅ IMPLEMENTADO | Análisis de silabeo y métrica, certificado |
+| Analizador Rimas | ✅ IMPLEMENTADO | Análisis de patrones de rima, certificado |
+| Sonificación Datos | ✅ IMPLEMENTADA | Mapeo de datos a sonido, certificado |
+| Herramientas Bloqueadas | ❌ 15 BLOQUEADAS | Requieren IA/DSP/APIs externas |
+| Tests | ✅ CREADOS | 37 tests ejecutados, 100% aprobados |
 | Frontend conectado | ⏳ PENDIENTE | Cliente API creado, páginas por conectar |
 | PostgreSQL | ⏳ PENDIENTE | No disponible en este entorno |
 | Stripe TEST | ⏳ PENDIENTE | Requiere configuración |

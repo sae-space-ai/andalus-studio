@@ -27,9 +27,9 @@
 - **Pagos (previsto):** Stripe TEST → LIVE tras aprobación humana
 - **Tests (previsto):** Vitest + Playwright
 
-## Estado actual: FASE 05 IMPLEMENTADA (con limitaciones documentadas)
+## Estado actual: FASE 05.1 IMPLEMENTADA (con limitaciones documentadas)
 
-Auditoría exhaustiva del catálogo completada. 5 herramientas con motores reales implementadas (Calculadora MIDI, Calculadora de BPM, Metrónomo, Afinador, Calculadora de Intervalos). 18 herramientas bloqueadas por complejidad técnica (requieren IA, DSP avanzado, APIs externas). 16 herramientas nunca fueron registradas en el código. Documentación honesta de limitaciones y bloqueos. Build exitoso.
+Auditoría exhaustiva del catálogo completada. 8 herramientas con motores reales implementadas (Calculadora MIDI, Calculadora de BPM, Metrónomo, Afinador, Calculadora de Intervalos, Analizador de Métrica, Analizador de Rimas, Sonificación de Datos). 15 herramientas bloqueadas por complejidad técnica (requieren IA, DSP avanzado, APIs externas). 37 tests creados y aprobados (100%). Documentación honesta de limitaciones y bloqueos. Build exitoso.
 
 ## Reglas permanentes
 

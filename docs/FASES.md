@@ -96,6 +96,21 @@
 - [ ] Tests ejecutados (requieren PostgreSQL)
 - [ ] Frontend conectado a herramientas
 
+## FASE 05.1 — Desbloqueo de motores pendientes ✅ IMPLEMENTADA
+- [x] Auditoría de las 5 herramientas certificadas
+- [x] Creación de Calculadora MIDI (archivo faltante)
+- [x] Analizador de Métrica implementado (silabeo, conteo, acentuación)
+- [x] Analizador de Rimas implementado (consonante, asonante, esquemas)
+- [x] Sonificación de Datos implementada (mapeo lineal/logarítmico, MIDI)
+- [x] 37 tests creados y aprobados (100%)
+- [x] 8 herramientas funcionales (34.8% del catálogo)
+- [x] Documentación de motores integrados
+- [x] Documentación de pruebas
+- [x] Build exitoso
+- [ ] 15 herramientas siguen bloqueadas (requieren IA/DSP/APIs externas)
+- [ ] Frontend conectado a herramientas
+- [ ] Tests ejecutados en entorno real (requieren PostgreSQL)
+
 ## FASE 03 — Pagos Stripe TEST
 - [ ] Integración Stripe (modo TEST)
 - [ ] Checkout sessions

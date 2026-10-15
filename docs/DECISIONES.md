@@ -131,6 +131,30 @@
 - **Resultado:** Conflictos encontrados, se requiere refactorización adicional.
 - **Fecha:** FASE 04
 
+### DEC-026: Implementar herramientas de análisis lingüístico
+- **Decisión:** Implementar Analizador de Métrica y Analizador de Rimas con algoritmos propios.
+- **Razón:** Son herramientas deterministas que no requieren IA, solo reglas lingüísticas.
+- **Resultado:** 2 herramientas implementadas y certificadas.
+- **Fecha:** FASE 05.1
+
+### DEC-027: Implementar sonificación básica
+- **Decisión:** Implementar Sonificación de Datos con mapeo lineal y logarítmico.
+- **Razón:** Es una herramienta determinista que convierte datos numéricos a sonido.
+- **Resultado:** 1 herramienta implementada y certificada.
+- **Fecha:** FASE 05.1
+
+### DEC-028: No implementar herramientas que requieren IA sin recursos
+- **Decisión:** No implementar herramientas que requieren APIs de IA sin presupuesto.
+- **Razón:** No hay presupuesto para APIs de IA en este momento.
+- **Resultado:** 12 herramientas pendientes documentadas.
+- **Fecha:** FASE 05.1
+
+### DEC-029: Priorizar herramientas de alta demanda
+- **Decisión:** Implementar primero herramientas de análisis lingüístico y sonificación.
+- **Razón:** Son útiles para compositores y no requieren recursos externos.
+- **Resultado:** 3 herramientas implementadas en FASE 05.1.
+- **Fecha:** FASE 05.1
+
 ### DEC-026: Documentación honesta de limitaciones
 - **Decisión:** Documentar honestamente que solo 5 de 23 herramientas tienen motores implementados.
 - **Razón:** Transparencia con el usuario, no inventar integraciones inexistentes.
