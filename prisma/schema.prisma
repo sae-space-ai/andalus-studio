@@ -1,0 +1,423 @@
+# Prisma Schema — Andalus Studio
+# Este archivo define el modelo de datos completo.
+# Requiere PostgreSQL en entorno real.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════════
+// IDENTIDAD Y ACCESO
+// ═══════════════════════════════════════════
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  passwordHash  String
+  name          String?
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  sessions          Session[]
+  emailVerifications EmailVerification[]
+  passwordResets    PasswordReset[]
+  memberships       Membership[]
+  auditEvents       AuditEvent[]
+
+  @@index([email])
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  userId     String
+  token      String   @unique
+  expiresAt  DateTime
+  userAgent  String?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+}
+
+// ═══════════════════════════════════════════
+// ORGANIZACIÓN Y ROLES
+// ═══════════════════════════════════════════
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  planId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  memberships   Membership[]
+  projects      Project[]
+  entitlement   Entitlement?
+  subscription  Subscription?
+  stripeCustomer StripeCustomer?
+  wallet        Wallet?
+  auditEvents   AuditEvent[]
+
+  @@index([slug])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model Membership {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  role           Role     @default(MEMBER)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+// ═══════════════════════════════════════════
+// CONTENIDO
+// ═══════════════════════════════════════════
+
+model Project {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assets       Asset[]
+  toolRuns     ToolRun[]
+
+  @@index([organizationId])
+}
+
+model Asset {
+  id             String   @id @default(uuid())
+  projectId      String
+  organizationId String
+  name           String
+  mimeType       String
+  sizeBytes      Int
+  storageKey     String
+  createdAt      DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([organizationId])
+}
+
+enum ToolStatus {
+  DRAFT
+  DEVELOPMENT
+  TESTED
+  PUBLISHED
+  DISABLED
+}
+
+model Tool {
+  id          String     @id @default(uuid())
+  slug        String     @unique
+  name        String
+  description String?
+  category    String
+  status      ToolStatus @default(DRAFT)
+  creditCost  Int        // Coste base en créditos
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  versions ToolVersion[]
+  toolRuns ToolRun[]
+
+  @@index([status])
+  @@index([category])
+}
+
+model ToolVersion {
+  id          String   @id @default(uuid())
+  toolId      String
+  version     String   // semver
+  changelog   String?
+  config      Json?    // Configuración de la versión
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  tool Tool @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([toolId, version])
+  @@index([toolId])
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model Job {
+  id             String    @id @default(uuid())
+  organizationId String
+  toolRunId      String?
+  status         JobStatus @default(PENDING)
+  progress       Int       @default(0)
+  error          String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+model ToolRun {
+  id             String   @id @default(uuid())
+  organizationId String
+  projectId      String?
+  toolId         String
+  toolVersionId  String?
+  inputs         Json
+  outputs        Json?
+  creditsUsed    Int      @default(0)
+  status         String   @default("pending")
+  createdAt      DateTime @default(now())
+  completedAt    DateTime?
+
+  tool       Tool       @relation(fields: [toolId], references: [id])
+  project    Project?   @relation(fields: [projectId], references: [id])
+  artifacts  Artifact[]
+  creditHold CreditHold?
+
+  @@index([organizationId])
+  @@index([toolId])
+}
+
+model Artifact {
+  id        String   @id @default(uuid())
+  toolRunId String
+  type      String   // "audio", "midi", "image", "text", etc.
+  name      String
+  storageKey String
+  sizeBytes Int
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  toolRun ToolRun @relation(fields: [toolRunId], references: [id], onDelete: Cascade)
+
+  @@index([toolRunId])
+}
+
+// ═══════════════════════════════════════════
+// ECONOMÍA
+// ═══════════════════════════════════════════
+
+model Plan {
+  id              String  @id @default(uuid())
+  slug            String  @unique
+  name            String
+  priceMonthly    Int     // céntimos
+  priceYearly     Int     // céntimos
+  creditsMonthly  Int
+  maxUsers        Int
+  storageBytes    BigInt
+  features        Json    // Features habilitadas
+  isActive        Boolean @default(true)
+  createdAt       DateTime @default(now())
+
+  organizations Organization[]
+  entitlements  Entitlement[]
+
+  @@index([slug])
+}
+
+model Entitlement {
+  id             String   @id @default(uuid())
+  organizationId String   @unique
+  planId         String
+  creditsTotal   Int
+  creditsUsed    Int      @default(0)
+  activeSince    DateTime @default(now())
+  activeUntil    DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         Plan         @relation(fields: [planId], references: [id])
+
+  @@index([organizationId])
+}
+
+model Subscription {
+  id                   String   @id @default(uuid())
+  organizationId       String   @unique
+  stripeSubscriptionId String   @unique
+  planId               String
+  status               String   // active, past_due, canceled, etc.
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([stripeSubscriptionId])
+}
+
+model StripeCustomer {
+  id             String @id @default(uuid())
+  organizationId String @unique
+  stripeCustomerId String @unique
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model StripeEvent {
+  id          String   @id @default(uuid())
+  eventId     String   @unique // Stripe event ID
+  type        String
+  data        Json
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([eventId])
+}
+
+model Wallet {
+  id             String @id @default(uuid())
+  organizationId String @unique
+  balance        Int    @default(0) // Créditos disponibles (enteros)
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ledgerEntries CreditLedgerEntry[]
+  creditHolds   CreditHold[]
+}
+
+model CreditHold {
+  id        String   @id @default(uuid())
+  walletId  String
+  toolRunId String   @unique
+  amount    Int
+  status    String   @default("held") // held, released, settled
+  createdAt DateTime @default(now())
+  settledAt DateTime?
+
+  wallet  Wallet  @relation(fields: [walletId], references: [id])
+  toolRun ToolRun @relation(fields: [toolRunId], references: [id])
+
+  @@index([walletId])
+}
+
+enum LedgerEntryType {
+  CREDIT       // Créditos añadidos (plan, compra)
+  DEBIT        // Créditos consumidos
+  HOLD         // Reserva
+  RELEASE      // Liberación de reserva
+  REFUND       // Devolución
+  EXPIRATION   // Créditos expirados
+}
+
+model CreditLedgerEntry {
+  id             String         @id @default(uuid())
+  walletId       String
+  type           LedgerEntryType
+  amount         Int            // Positivo = entrada, negativo = salida
+  balanceAfter   Int            // Saldo después de este movimiento
+  reference      String?        // ID de suscripción, toolRun, etc.
+  description    String?
+  createdAt      DateTime       @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([reference])
+}
+
+model UsageEvent {
+  id             String   @id @default(uuid())
+  organizationId String
+  toolId         String
+  toolRunId      String?
+  creditsUsed    Int
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([toolId])
+  @@index([createdAt])
+}
+
+// ═══════════════════════════════════════════
+// AUDITORÍA
+// ═══════════════════════════════════════════
+
+model AuditEvent {
+  id             String   @id @default(uuid())
+  userId         String?
+  organizationId String?
+  action         String   // "user.login", "tool.run", "plan.upgrade", etc.
+  resource       String?  // Tipo de recurso afectado
+  resourceId     String?  // ID del recurso
+  metadata       Json?
+  ip             String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  user         User?         @relation(fields: [userId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([action])
+  @@index([createdAt])
+}
