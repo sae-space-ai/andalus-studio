@@ -29,7 +29,7 @@
 
 ## Estado actual: FASE 01 COMPLETADA
 
-Interfaz profesional completa, sistema de diseño, catálogo con 23 herramientas en 10 familias, buscador funcional, filtros, fichas individuales, tema claro/oscuro.
+Interfaz profesional completa (15 páginas), sistema de diseño con tema claro/oscuro, catálogo con 23 herramientas en 10 familias, buscador funcional, filtros, fichas individuales, rutas de cuenta y facturación.
 Sin motores de ejecución. Sin integraciones activas. Sin cobros. Sin datos reales.
 
 ## Reglas permanentes

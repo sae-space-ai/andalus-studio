@@ -43,6 +43,11 @@ src/
 - `src/features/tools/types.ts` — Tipos del catálogo (250 líneas)
 - `src/features/tools/registry.ts` — Registro maestro (920 líneas)
 - `src/features/tools/hooks.ts` — Búsqueda y filtrado (200 líneas)
+- `src/features/account/pages/ForgotPasswordPage.tsx` — Recuperar contraseña
+- `src/features/account/pages/AccountPage.tsx` — Perfil y organización
+- `src/features/pricing/pages/BillingPage.tsx` — Facturación
+- `src/features/pricing/pages/CreditsPage.tsx` — Créditos y ledger
+- `src/features/pricing/pages/SubscriptionPage.tsx` — Gestión de suscripción
 - `src/tests/catalog.test.ts` — 30 tests (250 líneas)
 
 ### Documentación
@@ -103,7 +108,7 @@ src/
 
 ---
 
-## 7. PÁGINAS IMPLEMENTADAS (10)
+## 7. PÁGINAS IMPLEMENTADAS (15)
 
 | Ruta | Página | Estado |
 |------|--------|--------|
@@ -113,7 +118,12 @@ src/
 | `/pricing` | Planes y precios | ✅ Completa |
 | `/login` | Inicio de sesión | ✅ Simulada |
 | `/register` | Registro | ✅ Simulado |
+| `/forgot-password` | Recuperar contraseña | ✅ Simulada |
 | `/dashboard` | Panel de control | ✅ Completa |
+| `/account` | Mi cuenta | ✅ Completa |
+| `/billing` | Facturación | ✅ Placeholder |
+| `/credits` | Créditos y uso | ✅ Simulada |
+| `/subscription` | Gestión de suscripción | ✅ Placeholder |
 | `/studio` | Estudio integrado | ⏳ Placeholder |
 | `/how-it-works` | Cómo funciona | ✅ Completa |
 | `/legal/:type` | Legal (3 tipos) | ✅ Placeholder |
@@ -376,7 +386,7 @@ Objetivos:
 
 ### ✅ COMPLETADO
 
-- Interfaz profesional completa (10 páginas)
+- Interfaz profesional completa (15 páginas)
 - Sistema de diseño con tema claro/oscuro
 - Catálogo con 23 herramientas en 10 familias
 - Buscador funcional (tolerante a acentos)
@@ -384,6 +394,8 @@ Objetivos:
 - Fichas individuales reutilizables
 - Recomendador determinista
 - Navegación responsive
+- Rutas de cuenta: login, register, forgot-password, account
+- Rutas comerciales: pricing, billing, credits, subscription
 - 30 tests creados
 - Documentación completa (7 documentos FASE 01)
 - Build exitoso

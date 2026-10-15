@@ -45,7 +45,12 @@ La preferencia se guarda en `localStorage` bajo `andalus-theme`.
 | `/pricing` | Planes y precios | ✅ Implementada |
 | `/login` | Inicio de sesión | ✅ Implementada (simulada) |
 | `/register` | Registro | ✅ Implementado (simulado) |
+| `/forgot-password` | Recuperar contraseña | ✅ Implementada (simulada) |
 | `/dashboard` | Panel de control | ✅ Implementado |
+| `/account` | Mi cuenta | ✅ Implementada |
+| `/billing` | Facturación | ✅ Implementada (placeholder) |
+| `/credits` | Créditos y uso | ✅ Implementada (simulada) |
+| `/subscription` | Gestión de suscripción | ✅ Implementada (placeholder) |
 | `/studio` | Estudio integrado | ⏳ Placeholder |
 | `/how-it-works` | Cómo funciona | ✅ Implementada |
 | `/legal/:type` | Legal (privacy, terms, cookies) | ✅ Placeholder |

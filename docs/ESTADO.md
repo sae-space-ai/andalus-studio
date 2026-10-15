@@ -11,7 +11,7 @@
 | Contratos API | ✅ ESPECIFICADOS | Rutas y formatos (FASE 00) |
 | Planes | ✅ PARAMETRIZADOS | 5 planes orientativos (FASE 00) |
 | Sistema de diseño | ✅ IMPLEMENTADO | Light/Dark, tokens CSS (FASE 01) |
-| Interfaz profesional | ✅ COMPLETA | 10 páginas, responsive (FASE 01) |
+| Interfaz profesional | ✅ COMPLETA | 15 páginas, responsive (FASE 01) |
 | Catálogo | ✅ REGISTRADO | 23 herramientas, 10 familias (FASE 01) |
 | Buscador/filtros | ✅ FUNCIONAL | Búsqueda, filtros, recomendador (FASE 01) |
 | Fichas individuales | ✅ REUTILIZABLES | Componente dinámico (FASE 01) |

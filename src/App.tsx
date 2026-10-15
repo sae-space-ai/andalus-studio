@@ -7,6 +7,15 @@ import { getStatusLabel, getStatusColor, getCostPolicyLabel, canToolExecute, TOO
 import type { ToolFamily } from './features/tools/types';
 import { useState } from 'react';
 
+// Páginas de cuenta
+import ForgotPasswordPage from './features/account/pages/ForgotPasswordPage';
+import AccountPage from './features/account/pages/AccountPage';
+
+// Páginas de facturación
+import BillingPage from './features/pricing/pages/BillingPage';
+import CreditsPage from './features/pricing/pages/CreditsPage';
+import SubscriptionPage from './features/pricing/pages/SubscriptionPage';
+
 // ═══════════════════════════════════════════
 // COMPONENTES DE LAYOUT
 // ═══════════════════════════════════════════
@@ -869,6 +878,11 @@ function AppContent() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/studio" element={<StudioPage />} />
         <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/billing" element={<BillingPage />} />
+        <Route path="/credits" element={<CreditsPage />} />
+        <Route path="/subscription" element={<SubscriptionPage />} />
         <Route path="/legal/:type" element={<LegalPage />} />
         <Route path="*" element={
           <div className="max-w-7xl mx-auto px-4 py-20 text-center">

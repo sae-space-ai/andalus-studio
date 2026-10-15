@@ -15,10 +15,19 @@ src/
 │   ├── AuthContext.tsx        # Estado de autenticación (simulado)
 │   └── ThemeContext.tsx       # Tema claro/oscuro
 ├── features/
-│   └── tools/
-│       ├── types.ts           # Tipos del catálogo
-│       ├── registry.ts        # Registro maestro (23 herramientas)
-│       └── hooks.ts           # Búsqueda, filtrado, recomendación
+│   ├── tools/
+│   │   ├── types.ts           # Tipos del catálogo
+│   │   ├── registry.ts        # Registro maestro (23 herramientas)
+│   │   └── hooks.ts           # Búsqueda, filtrado, recomendación
+│   ├── account/
+│   │   └── pages/
+│   │       ├── ForgotPasswordPage.tsx  # Recuperar contraseña
+│   │       └── AccountPage.tsx         # Perfil y organización
+│   └── pricing/
+│       └── pages/
+│           ├── BillingPage.tsx         # Facturación
+│           ├── CreditsPage.tsx         # Créditos y ledger
+│           └── SubscriptionPage.tsx    # Gestión de suscripción
 ├── types/
 │   └── index.ts               # Tipos globales (User, Plan, etc.)
 └── tests/
@@ -35,7 +44,12 @@ src/
 | `/pricing` | PricingPage | 5 planes con precios orientativos |
 | `/login` | LoginPage | Formulario de acceso (simulado) |
 | `/register` | RegisterPage | Formulario de registro (simulado) |
+| `/forgot-password` | ForgotPasswordPage | Recuperación de contraseña (simulada) |
 | `/dashboard` | DashboardPage | Panel de control |
+| `/account` | AccountPage | Perfil y organización |
+| `/billing` | BillingPage | Facturación (placeholder) |
+| `/credits` | CreditsPage | Créditos y ledger (simulado) |
+| `/subscription` | SubscriptionPage | Gestión de suscripción (placeholder) |
 | `/studio` | StudioPage | Placeholder (en desarrollo) |
 | `/how-it-works` | HowItWorksPage | Explicación del circuito |
 | `/legal/:type` | LegalPage | Privacidad, términos, cookies |
