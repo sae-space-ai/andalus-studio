@@ -40,6 +40,33 @@ const envSchema = z.object({
   // Tokens
   EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS: z.coerce.number().default(24),
   PASSWORD_RESET_TOKEN_EXPIRY_HOURS: z.coerce.number().default(1),
+  
+  // ═══════════════════════════════════════════
+  // STRIPE (FASE 03)
+  // ═══════════════════════════════════════════
+  
+  // Modo Stripe (TEST o LIVE)
+  STRIPE_MODE: z.enum(['TEST', 'LIVE']).default('TEST'),
+  
+  // Claves de Stripe
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  
+  // IDs de precios en Stripe
+  STRIPE_PRICE_CREATOR_MONTHLY: z.string().optional(),
+  STRIPE_PRICE_CREATOR_YEARLY: z.string().optional(),
+  STRIPE_PRICE_PRO_MONTHLY: z.string().optional(),
+  STRIPE_PRICE_PRO_YEARLY: z.string().optional(),
+  STRIPE_PRICE_STUDIO_MONTHLY: z.string().optional(),
+  STRIPE_PRICE_STUDIO_YEARLY: z.string().optional(),
+  
+  // Configuración del portal de Stripe
+  STRIPE_PORTAL_CONFIGURATION_ID: z.string().optional(),
+  
+  // URLs
+  API_URL: z.string().url().default('http://localhost:3001'),
+  STRIPE_WEBHOOK_URL: z.string().url().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -66,4 +93,26 @@ export function isDevelopment(env: Env): boolean {
 
 export function isTest(env: Env): boolean {
   return env.NODE_ENV === 'test';
+}
+
+export function isStripeConfigured(env: Env): boolean {
+  return !!env.STRIPE_SECRET_KEY && !!env.STRIPE_WEBHOOK_SECRET;
+}
+
+export function isStripeLive(env: Env): boolean {
+  return env.STRIPE_MODE === 'LIVE';
+}
+
+export function validateStripeKey(key: string | undefined, env: Env): void {
+  if (!key) {
+    throw new Error('Stripe key not configured');
+  }
+  
+  if (env.STRIPE_MODE === 'TEST' && key.startsWith('sk_live_')) {
+    throw new Error('LIVE Stripe key used in TEST mode');
+  }
+  
+  if (env.STRIPE_MODE === 'LIVE' && key.startsWith('sk_test_')) {
+    throw new Error('TEST Stripe key used in LIVE mode');
+  }
 }

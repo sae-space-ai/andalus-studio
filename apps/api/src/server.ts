@@ -14,6 +14,11 @@ import { loadEnv, Env } from './config/env';
 import { authRoutes } from './routes/auth';
 import { accountRoutes } from './routes/account';
 import { healthRoutes } from './routes/health';
+import { billingRoutes } from './routes/billing';
+import { creditsRoutes } from './routes/credits';
+import { webhookRoutes } from './routes/webhooks';
+import { toolsRoutes } from './routes/tools';
+import { initStripe } from './modules/stripe/stripe';
 
 export interface AppContext {
   env: Env;
@@ -99,6 +104,12 @@ export async function buildServer() {
   app.decorate('context', context);
 
   // ═══════════════════════════════════════════
+  // INICIALIZAR STRIPE (FASE 03)
+  // ═══════════════════════════════════════════
+
+  initStripe(env);
+
+  // ═══════════════════════════════════════════
   // RUTAS
   // ═══════════════════════════════════════════
 
@@ -110,6 +121,18 @@ export async function buildServer() {
 
   // Cuenta de usuario (requiere autenticación)
   app.register(accountRoutes, { prefix: '/api/account' });
+
+  // Billing (suscripciones, checkout, portal, facturas)
+  app.register(billingRoutes, { prefix: '/api/billing' });
+
+  // Créditos (saldo, ledger, trabajos)
+  app.register(creditsRoutes, { prefix: '/api/credits' });
+
+  // Herramientas (calculadora MIDI, etc.)
+  app.register(toolsRoutes, { prefix: '/api/tools' });
+
+  // Webhooks de Stripe (sin autenticación de sesión, usa firma de Stripe)
+  app.register(webhookRoutes, { prefix: '/api/webhooks' });
 
   // ═══════════════════════════════════════════
   // MANEJO DE ERRORES

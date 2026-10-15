@@ -44,7 +44,27 @@
 - [ ] Frontend conectado a API real (pendiente)
 - [ ] Tests ejecutados (requiere PostgreSQL)
 
-## FASE 03 — Herramientas y ejecución (previsto)
+## FASE 03 — Sistema comercial (Stripe TEST) ✅ IMPLEMENTADA
+- [x] Integración con Stripe SDK
+- [x] Sistema de suscripciones
+- [x] Checkout Sessions
+- [x] Portal de Cliente
+- [x] Webhooks con verificación de firma
+- [x] Idempotencia de eventos
+- [x] Sistema de créditos con ledger inmutable
+- [x] Reserva atómica de créditos
+- [x] Captura y liberación de créditos
+- [x] Reembolsos
+- [x] Reconciliación de saldo
+- [x] Gestión de facturas
+- [x] Políticas de precios
+- [x] Auditoría comercial
+- [x] Documentación completa FASE 03
+- [ ] Frontend conectado a APIs de billing (pendiente)
+- [ ] Stripe TEST configurado (pendiente)
+- [ ] Tests ejecutados (requiere PostgreSQL)
+
+## FASE 04 — Herramientas y ejecución (previsto)
 - [ ] Tool SDK
 - [ ] Sistema de jobs (BullMQ)
 - [ ] Ejecución con reserva de créditos

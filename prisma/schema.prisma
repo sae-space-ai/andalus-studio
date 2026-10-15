@@ -266,58 +266,96 @@ model Artifact {
 }
 
 // ═══════════════════════════════════════════
-// ECONOMÍA
+// ECONOMÍA Y SISTEMA COMERCIAL (FASE 03)
 // ═══════════════════════════════════════════
 
 model Plan {
-  id              String  @id @default(uuid())
-  slug            String  @unique
-  name            String
-  priceMonthly    Int     // céntimos
-  priceYearly     Int     // céntimos
-  creditsMonthly  Int
-  maxUsers        Int
-  storageBytes    BigInt
-  features        Json    // Features habilitadas
-  isActive        Boolean @default(true)
-  createdAt       DateTime @default(now())
+  id                    String   @id @default(uuid())
+  slug                  String   @unique
+  name                  String
+  description           String?
+  priceMonthly          Int      // céntimos de euro
+  priceYearly           Int      // céntimos de euro
+  currency              String   @default("EUR")
+  billingInterval       String   @default("monthly") // monthly, yearly
+  includedCredits       Int      // Créditos incluidos por periodo
+  creditsRollover       Boolean  @default(false) // Si los créditos no usados acumulan
+  maxUsers              Int
+  storageBytes          BigInt
+  concurrencyLimit      Int      @default(1) // Trabajos simultáneos
+  features              Json     // Features habilitadas
+  limits                Json?    // Límites específicos
+  toolAccess            Json?    // Herramientas accesibles
+  stripePriceIdMonthly  String?  // ID de precio mensual en Stripe
+  stripePriceIdYearly   String?  // ID de precio anual en Stripe
+  status                String   @default("ACTIVE") // ACTIVE, INACTIVE, ARCHIVED
+  version               Int      @default(1) // Versión del plan
+  isDefault             Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
-  organizations Organization[]
-  entitlements  Entitlement[]
+  organizations  Organization[]
+  entitlements   Entitlement[]
+  subscriptions  Subscription[]
 
   @@index([slug])
+  @@index([status])
 }
 
 model Entitlement {
-  id             String   @id @default(uuid())
-  organizationId String   @unique
-  planId         String
-  creditsTotal   Int
-  creditsUsed    Int      @default(0)
-  activeSince    DateTime @default(now())
-  activeUntil    DateTime?
+  id                String    @id @default(uuid())
+  organizationId    String    @unique
+  planId            String
+  status            String    @default("ACTIVE") // ACTIVE, SUSPENDED, EXPIRED
+  creditsTotal      Int       // Créditos totales del periodo
+  creditsUsed       Int       @default(0)
+  creditsReserved   Int       @default(0) // Créditos reservados en trabajos pendientes
+  periodStart       DateTime  // Inicio del periodo actual
+  periodEnd         DateTime? // Fin del periodo actual
+  activeSince       DateTime  @default(now())
+  activeUntil       DateTime?
+  features          Json?     // Features específicas habilitadas
+  toolAccess        Json?     // Herramientas accesibles
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   plan         Plan         @relation(fields: [planId], references: [id])
 
   @@index([organizationId])
+  @@index([status])
 }
 
 model Subscription {
-  id                   String   @id @default(uuid())
-  organizationId       String   @unique
-  stripeSubscriptionId String   @unique
-  planId               String
-  status               String   // active, past_due, canceled, etc.
-  currentPeriodStart   DateTime
-  currentPeriodEnd     DateTime
-  cancelAtPeriodEnd    Boolean  @default(false)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                      String    @id @default(uuid())
+  organizationId          String    @unique
+  stripeSubscriptionId    String    @unique
+  stripeCustomerId        String?
+  planId                  String
+  status                  String    // incomplete, trialing, active, past_due, unpaid, canceled, paused
+  billingCycleAnchor      DateTime?
+  currentPeriodStart      DateTime
+  currentPeriodEnd        DateTime
+  cancelAt                DateTime?
+  cancelAtPeriodEnd       Boolean   @default(false)
+  canceledAt              DateTime?
+  endedAt                 DateTime?
+  trialStart              DateTime?
+  trialEnd                DateTime?
+  latestInvoiceId         String?
+  defaultPaymentMethodId  String?
+  metadata                Json?
+  lastSyncedAt            DateTime? // Última sincronización con Stripe
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         Plan         @relation(fields: [planId], references: [id])
+  invoices     Invoice[]
 
   @@index([stripeSubscriptionId])
+  @@index([status])
+  @@index([organizationId])
 }
 
 model StripeCustomer {
@@ -340,14 +378,23 @@ model StripeEvent {
 }
 
 model Wallet {
-  id             String @id @default(uuid())
-  organizationId String @unique
-  balance        Int    @default(0) // Créditos disponibles (enteros)
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(uuid())
+  organizationId    String   @unique
+  balance           Int      @default(0) // Créditos disponibles (enteros)
+  totalCredits      Int      @default(0) // Total de créditos recibidos
+  totalConsumed     Int      @default(0) // Total de créditos consumidos
+  totalReserved     Int      @default(0) // Créditos reservados actualmente
+  currency          String   @default("CREDITS")
+  lastReconciledAt  DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ledgerEntries CreditLedgerEntry[]
-  creditHolds   CreditHold[]
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ledgerEntries   CreditLedgerEntry[]
+  creditHolds     CreditHold[]
+  creditGrants    CreditGrant[]
+
+  @@index([organizationId])
 }
 
 model CreditHold {
@@ -366,28 +413,37 @@ model CreditHold {
 }
 
 enum LedgerEntryType {
-  CREDIT       // Créditos añadidos (plan, compra)
-  DEBIT        // Créditos consumidos
-  HOLD         // Reserva
-  RELEASE      // Liberación de reserva
-  REFUND       // Devolución
-  EXPIRATION   // Créditos expirados
+  GRANT        // Créditos concedidos (plan, compra, promoción)
+  PURCHASE     // Compra de créditos adicionales
+  RESERVE      // Reserva para trabajo pendiente
+  CAPTURE      // Consumo confirmado de trabajo
+  RELEASE      // Liberación de reserva no utilizada
+  REFUND       // Devolución por trabajo fallido
+  EXPIRE       // Créditos expirados
+  ADJUSTMENT   // Ajuste administrativo
 }
 
 model CreditLedgerEntry {
-  id             String         @id @default(uuid())
-  walletId       String
-  type           LedgerEntryType
-  amount         Int            // Positivo = entrada, negativo = salida
-  balanceAfter   Int            // Saldo después de este movimiento
-  reference      String?        // ID de suscripción, toolRun, etc.
-  description    String?
-  createdAt      DateTime       @default(now())
+  id                String           @id @default(uuid())
+  walletId          String
+  entryType         LedgerEntryType
+  amount            Int              // Positivo = entrada, negativo = salida
+  balanceAfter      Int              // Saldo después de este movimiento
+  relatedJobId      String?          // ID del trabajo relacionado
+  relatedInvoiceId  String?          // ID de factura relacionada
+  relatedSubscriptionId String?      // ID de suscripción relacionada
+  idempotencyKey    String?          @unique // Clave de idempotencia
+  description       String?
+  metadata          Json?
+  createdAt         DateTime         @default(now())
 
   wallet Wallet @relation(fields: [walletId], references: [id])
 
   @@index([walletId])
-  @@index([reference])
+  @@index([relatedJobId])
+  @@index([relatedInvoiceId])
+  @@index([idempotencyKey])
+  @@index([createdAt])
 }
 
 model UsageEvent {
@@ -400,6 +456,189 @@ model UsageEvent {
 
   @@index([organizationId])
   @@index([toolId])
+  @@index([createdAt])
+}
+
+// ═══════════════════════════════════════════
+// CONCESIONES DE CRÉDITOS (FASE 03)
+// ═══════════════════════════════════════════
+
+model CreditGrant {
+  id                String   @id @default(uuid())
+  walletId          String
+  grantType         String   // SUBSCRIPTION, PURCHASE, PROMOTION, ADJUSTMENT
+  amount            Int      // Cantidad de créditos concedidos
+  source            String?  // Fuente: "plan_creator", "pack_medium", etc.
+  relatedInvoiceId  String?
+  relatedSubscriptionId String?
+  expiresAt         DateTime? // Cuándo expiran estos créditos
+  consumedAt        DateTime? // Cuándo se consumieron completamente
+  status            String   @default("ACTIVE") // ACTIVE, CONSUMED, EXPIRED
+  metadata          Json?
+  createdAt         DateTime @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+// ═══════════════════════════════════════════
+// FACTURAS (FASE 03)
+// ═══════════════════════════════════════════
+
+model Invoice {
+  id                      String    @id @default(uuid())
+  subscriptionId          String?
+  organizationId          String
+  stripeInvoiceId         String?   @unique
+  stripePaymentIntentId   String?
+  number                  String?   // Número de factura oficial
+  status                  String    // draft, open, paid, void, uncollectible
+  currency                String    @default("EUR")
+  amountSubtotal          Int       // Subtotal en céntimos
+  amountTax               Int       @default(0) // Impuestos en céntimos
+  amountTotal             Int       // Total en céntimos
+  amountPaid              Int       @default(0) // Cantidad pagada
+  amountRemaining         Int       @default(0) // Cantidad pendiente
+  periodStart             DateTime? // Inicio del periodo facturado
+  periodEnd               DateTime? // Fin del periodo facturado
+  invoicePdf              String?   // URL al PDF de Stripe
+  hostedInvoiceUrl        String?   // URL pública de la factura
+  paidAt                  DateTime?
+  dueDate                 DateTime?
+  metadata                Json?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId])
+  @@index([organizationId])
+  @@index([stripeInvoiceId])
+  @@index([status])
+}
+
+// ═══════════════════════════════════════════
+// TRABAJOS DE HERRAMIENTAS (FASE 03)
+// ═══════════════════════════════════════════
+
+enum ToolJobStatus {
+  QUOTED      // Cotización generada
+  AUTHORIZED  // Usuario autorizó ejecución
+  RESERVED    // Créditos reservados
+  RUNNING     // En ejecución
+  SUCCEEDED   // Completado exitosamente
+  FAILED      // Falló
+  CANCELLED   // Cancelado por usuario
+  SETTLED     // Consumo liquidado
+  REFUNDED    // Reembolsado
+}
+
+model ToolUsageJob {
+  id                String          @id @default(uuid())
+  organizationId    String
+  toolId            String
+  toolVersionId     String?
+  userId            String          // Usuario que inició el trabajo
+  status            ToolJobStatus   @default(QUOTED)
+  quotedCredits     Int             // Créditos cotizados
+  reservedCredits   Int             // Créditos reservados
+  consumedCredits   Int             @default(0) // Créditos consumidos realmente
+  refundedCredits   Int             @default(0) // Créditos reembolsados
+  idempotencyKey    String?         @unique // Clave de idempotencia
+  inputs            Json?           // Entradas del trabajo
+  outputs           Json?           // Salidas del trabajo
+  error             String?         // Error si falló
+  startedAt         DateTime?
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  settledAt         DateTime?
+  refundedAt        DateTime?
+  metadata          Json?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([toolId])
+  @@index([status])
+  @@index([idempotencyKey])
+}
+
+// ═══════════════════════════════════════════
+// POLÍTICAS DE PRECIOS (FASE 03)
+// ═══════════════════════════════════════════
+
+model ToolPricePolicy {
+  id              String   @id @default(uuid())
+  toolId          String
+  version         Int      @default(1)
+  pricingModel    String   // FIXED, PER_UNIT, TIERED, TIME_BASED
+  baseCredits     Int      // Créditos base
+  additionalRules Json?    // Reglas adicionales de pricing
+  minCredits      Int?     // Mínimo a cobrar
+  maxCredits      Int?     // Máximo a cobrar
+  refundPolicy    String   @default("FULL_ON_FAILURE") // FULL_ON_FAILURE, PARTIAL, NONE
+  isActive        Boolean  @default(true)
+  validFrom       DateTime @default(now())
+  validUntil      DateTime?
+  createdAt       DateTime @default(now())
+
+  @@unique([toolId, version])
+  @@index([toolId])
+  @@index([isActive])
+}
+
+// ═══════════════════════════════════════════
+// EVENTOS DE STRIPE (FASE 03)
+// ═══════════════════════════════════════════
+
+model StripeWebhookEvent {
+  id                  String    @id @default(uuid())
+  stripeEventId       String    @unique // ID del evento en Stripe
+  eventType           String    // Tipo de evento: checkout.session.completed, etc.
+  apiVersion          String?   // Versión de API de Stripe
+  objectId            String?   // ID del objeto principal (subscription, invoice, etc.)
+  objectType          String?   // Tipo de objeto
+  receivedAt          DateTime  @default(now())
+  processedAt         DateTime?
+  processingStatus    String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  attempts            Int       @default(0)
+  lastError           String?
+  lastAttemptAt       DateTime?
+  payload             Json      // Payload completo del evento
+  idempotencyKey      String?   @unique // Clave de idempotencia para evitar duplicados
+  
+  @@index([stripeEventId])
+  @@index([eventType])
+  @@index([processingStatus])
+  @@index([idempotencyKey])
+  @@index([receivedAt])
+}
+
+// ═══════════════════════════════════════════
+// AUDITORÍA COMERCIAL (FASE 03)
+// ═══════════════════════════════════════════
+
+model BillingAuditEvent {
+  id              String   @id @default(uuid())
+  organizationId  String?
+  userId          String?
+  action          String   // "subscription.created", "credits.granted", "invoice.paid", etc.
+  resourceType    String?  // "subscription", "invoice", "wallet", etc.
+  resourceId      String?
+  amount          Int?     // Cantidad involucrada (céntimos o créditos)
+  currency        String?  // "EUR" o "CREDITS"
+  metadata        Json?
+  ipAddress       String?
+  userAgent       String?
+  createdAt       DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([action])
   @@index([createdAt])
 }
 
