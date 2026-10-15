@@ -1,12 +1,12 @@
 # ESTADO — Andalus Studio
 
-## Fecha última actualización: FASE 03 implementada
+## Fecha última actualización: FASE 04 implementada (con limitaciones)
 
 ### Estado general
 
 | Componente | Estado | Notas |
 |-----------|--------|-------|
-| Documentación | ✅ COMPLETO | Todos los docs FASE 00, 01, 02 y 03 |
+| Documentación | ✅ COMPLETO | Todos los docs FASE 00, 01, 02, 03 y 04 |
 | Modelo de datos | ✅ ACTUALIZADO | Schema Prisma con sistema comercial completo |
 | Contratos API | ✅ IMPLEMENTADOS | Endpoints de auth, billing, créditos |
 | Backend Fastify | ✅ IMPLEMENTADO | Código completo, pendiente de ejecución |
@@ -17,8 +17,12 @@
 | Sistema Comercial | ✅ IMPLEMENTADO | Stripe TEST, suscripciones, créditos |
 | Ledger de Créditos | ✅ IMPLEMENTADO | Inmutable, atómico, reconciliable |
 | Webhooks Stripe | ✅ IMPLEMENTADOS | Verificación de firma, idempotencia |
-| Tests | ✅ CREADOS | 72 tests totales, no ejecutados |
-| Frontend conectado | ⏳ PENDIENTE | Requiere cliente HTTP |
+| Cliente API | ✅ IMPLEMENTADO | Frontend listo para conectar con backend |
+| Tool SDK | ⚠️ PARCIAL | Tipos diseñados, integración incompleta |
+| Calculadora Intervalos | ✅ IMPLEMENTADA | Herramienta determinista |
+| Calculadora Duración | ✅ IMPLEMENTADA | Herramienta determinista |
+| Tests | ✅ CREADOS | 72+ tests totales, no ejecutados |
+| Frontend conectado | ⏳ PENDIENTE | Cliente API creado, páginas por conectar |
 | PostgreSQL | ⏳ PENDIENTE | No disponible en este entorno |
 | Stripe TEST | ⏳ PENDIENTE | Requiere configuración |
 | Anagrama corporativo | ⏳ PENDIENTE | Archivo no encontrado |

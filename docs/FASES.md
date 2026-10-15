@@ -64,12 +64,20 @@
 - [ ] Stripe TEST configurado (pendiente)
 - [ ] Tests ejecutados (requiere PostgreSQL)
 
-## FASE 04 — Herramientas y ejecución (previsto)
-- [ ] Tool SDK
+## FASE 04 — Motor universal de herramientas ⚠️ IMPLEMENTADA CON LIMITACIONES
+- [x] Auditoría de integridad completada
+- [x] Cliente API centralizado implementado
+- [x] AuthContext actualizado para usar cliente API
+- [x] Tool SDK diseñado con tipos completos
+- [x] Calculadora MIDI integrada con SDK
+- [x] Calculadora de intervalos musicales implementada
+- [x] Calculadora de duración musical implementada
+- [ ] Integración completa del Tool SDK (conflictos de tipos)
+- [ ] Frontend conectado a páginas (cliente API creado)
 - [ ] Sistema de jobs (BullMQ)
 - [ ] Ejecución con reserva de créditos
 - [ ] Artefactos y descargas
-- [ ] Más herramientas funcionales
+- [ ] Tests ejecutados
 
 ## FASE 03 — Pagos Stripe TEST
 - [ ] Integración Stripe (modo TEST)

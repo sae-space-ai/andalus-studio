@@ -109,3 +109,24 @@
 - **Decisión:** Imprimir emails en consola en desarrollo.
 - **Razón:** No requiere proveedor SMTP para pruebas locales.
 - **Fecha:** FASE 02
+
+### DEC-022: Cliente API centralizado
+- **Decisión:** Crear un cliente API único en `src/lib/api.ts`.
+- **Razón:** Simplifica conexión frontend-backend, centraliza manejo de errores, CSRF y cookies.
+- **Fecha:** FASE 04
+
+### DEC-023: Auditoría antes de cambios
+- **Decisión:** Realizar auditoría de integridad antes de modificar código.
+- **Razón:** Confirmar que no hay archivos perdidos antes de construir sobre la base existente.
+- **Fecha:** FASE 04
+
+### DEC-024: Herramientas deterministas primero
+- **Decisión:** Implementar herramientas matemáticas simples antes que las complejas.
+- **Razón:** Permiten validar la arquitectura sin dependencias externas complejas.
+- **Fecha:** FASE 04
+
+### DEC-025: Integración gradual del Tool SDK
+- **Decisión:** Mantener compatibilidad con FASE 01 mientras se migra al nuevo SDK.
+- **Razón:** Evitar conflictos de tipos y romper código existente.
+- **Resultado:** Conflictos encontrados, se requiere refactorización adicional.
+- **Fecha:** FASE 04

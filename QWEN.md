@@ -27,9 +27,9 @@
 - **Pagos (previsto):** Stripe TEST → LIVE tras aprobación humana
 - **Tests (previsto):** Vitest + Playwright
 
-## Estado actual: FASE 03 IMPLEMENTADA
+## Estado actual: FASE 04 IMPLEMENTADA (con limitaciones)
 
-Sistema comercial completo implementado: integración con Stripe (modo TEST), sistema de suscripciones, gestión de créditos con ledger inmutable, webhooks para sincronización, portal de cliente, facturación. Backend Fastify con autenticación, sesiones seguras, protección CSRF. Primera herramienta musical (calculadora MIDI). Frontend aún no conectado a API real. PostgreSQL y ejecución de tests pendientes.
+Cliente API centralizado implementado para conectar frontend con backend. Auditoría de integridad completada (repositorio íntegro). Tool SDK diseñado con tipos completos. 3 herramientas deterministas implementadas (calculadora MIDI, intervalos, duración). Herramientas calculadoras listas para certificación. Frontend preparado para conectarse con backend real. Tool SDK parcialmente integrado (conflictos de tipos con FASE 01 requieren refactorización). PostgreSQL y ejecución de tests pendientes.
 
 ## Reglas permanentes
 
