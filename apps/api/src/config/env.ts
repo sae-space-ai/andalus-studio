@@ -1,69 +1,75 @@
-/**
- * Configuración del servidor ANDALUS STUDIO API
- * FASE 02 - Backend Real
- */
+// Configuración de entorno. Sin secretos hardcodeados.
+// Si faltan credenciales externas, la capacidad correspondiente queda DESHABILITADA
+// (honestidad técnica: nada se muestra como operativo sin configuración real).
+import fs from "node:fs";
+import path from "node:path";
 
-import { z } from 'zod';
-
-const envSchema = z.object({
-  // Servidor
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  API_PORT: z.coerce.number().default(3001),
-  API_HOST: z.string().default('0.0.0.0'),
-  
-  // Frontend URL (para CORS)
-  FRONTEND_URL: z.string().url(),
-  
-  // Base de datos
-  DATABASE_URL: z.string().url(),
-  
-  // Sesiones
-  SESSION_SECRET: z.string().min(32),
-  SESSION_MAX_AGE_DAYS: z.coerce.number().default(7),
-  
-  // Cookies
-  COOKIE_SECURE: z.coerce.boolean().default(false), // true en producción con HTTPS
-  COOKIE_SAME_SITE: z.enum(['strict', 'lax', 'none']).default('lax'),
-  
-  // Email (opcional en desarrollo)
-  EMAIL_PROVIDER: z.enum(['smtp', 'console', 'none']).default('console'),
-  SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.coerce.number().optional(),
-  SMTP_USER: z.string().optional(),
-  SMTP_PASS: z.string().optional(),
-  EMAIL_FROM: z.string().email().default('noreply@andalus.ai'),
-  
-  // Rate limiting
-  RATE_LIMIT_MAX: z.coerce.number().default(100),
-  RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
-  
-  // Tokens
-  EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS: z.coerce.number().default(24),
-  PASSWORD_RESET_TOKEN_EXPIRY_HOURS: z.coerce.number().default(1),
-});
-
-export type Env = z.infer<typeof envSchema>;
-
-export function loadEnv(): Env {
-  const result = envSchema.safeParse(process.env);
-  
-  if (!result.success) {
-    console.error('❌ Variables de entorno inválidas:');
-    console.error(result.error.format());
-    process.exit(1);
+function loadDotEnv() {
+  const p = path.resolve(process.cwd(), ".env");
+  if (!fs.existsSync(p)) return;
+  for (const line of fs.readFileSync(p, "utf8").split("\n")) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+    if (m && process.env[m[1]] === undefined) {
+      process.env[m[1]] = m[2].replace(/^"|"$/g, "");
+    }
   }
-  
-  return result.data;
+}
+loadDotEnv();
+
+function req(name: string): string {
+  const v = process.env[name];
+  if (!v) throw new Error(`Falta la variable de entorno ${name}`);
+  return v;
 }
 
-export function isProduction(env: Env): boolean {
-  return env.NODE_ENV === 'production';
+const env = {
+  nodeEnv: process.env.NODE_ENV ?? "development",
+  isProd: process.env.NODE_ENV === "production",
+  port: Number(process.env.API_PORT ?? 3001),
+  databaseUrl: req("DATABASE_URL"),
+  sessionSecret: req("SESSION_SECRET"),
+  frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:5173",
+  apiPublicUrl: process.env.API_PUBLIC_URL ?? `http://localhost:${process.env.API_PORT ?? 3001}`,
+
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    redirectUri: process.env.GOOGLE_REDIRECT_URI ?? "",
+    get enabled(): boolean {
+      return !!(this.clientId && this.clientSecret && this.redirectUri);
+    },
+  },
+
+  smtp: {
+    host: process.env.SMTP_HOST ?? "",
+    port: Number(process.env.SMTP_PORT ?? 1025),
+    user: process.env.SMTP_USER ?? "",
+    pass: process.env.SMTP_PASS ?? "",
+    from: process.env.SMTP_FROM ?? "noreply@andaluscreative.world",
+    get enabled(): boolean {
+      return !!this.host;
+    },
+  },
+
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY ?? "",
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+    get enabled(): boolean {
+      return this.secretKey.startsWith("sk_test_");
+    },
+    get mode(): "test" | "live" | null {
+      if (this.secretKey.startsWith("sk_test_")) return "test";
+      if (this.secretKey.startsWith("sk_live_")) return "live"; // Fase 00: NO debe ocurrir
+      return null;
+    },
+  },
+
+  storageDir: process.env.STORAGE_DIR ?? "./storage-dev",
+  maxUploadBytes: Number(process.env.MAX_UPLOAD_MB ?? 25) * 1024 * 1024,
+};
+
+if (env.stripe.mode === "live") {
+  throw new Error("FASE 00: no se permite una clave Stripe LIVE. Usa sk_test_ o déjala vacía.");
 }
 
-export function isDevelopment(env: Env): boolean {
-  return env.NODE_ENV === 'development';
-}
-
-export function isTest(env: Env): boolean {
-  return env.NODE_ENV === 'test';
-}
+export default env;

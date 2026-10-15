@@ -1,0 +1,123 @@
+/* Identidad corporativa AL-ANDALUS AI — hoja de estilos base.
+   Verde Andalucía #006B3F · Verde profundo #073C27 · Blanco.
+   Modo claro y oscuro. Contrastes ajustados para accesibilidad (WCAG AA). */
+:root {
+  --green: #006b3f;
+  --green-deep: #073c27;
+  --green-light: #e6f4ee;
+  --white: #ffffff;
+  --ink: #14201a;
+  --muted: #5b6b62;
+  --card: #ffffff;
+  --bg: #f7faf8;
+  --border: #d8e4dc;
+  --danger: #b3261e;
+  --warn-bg: #fff7e0;
+  --warn-border: #d9a514;
+  --focus: #0b8f57;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --green: #35c98f;
+    --green-deep: #cdeedd;
+    --green-light: #103021;
+    --white: #0d1512;
+    --ink: #eaf4ee;
+    --muted: #9db4a8;
+    --card: #16211b;
+    --bg: #0b120e;
+    --border: #2a3d33;
+    --danger: #ff8a80;
+    --warn-bg: #2e2410;
+    --warn-border: #d9a514;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Georgia", "Times New Roman", serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.55;
+}
+h1, h2, h3, .sans { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+a { color: var(--green); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.container { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+/* Marca tipográfica (sin anagrama: no inventamos símbolo oficial) */
+.brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: inherit; }
+.brand-name { font-weight: 700; letter-spacing: 0.06em; font-size: 1.05rem; color: var(--green); font-family: system-ui, sans-serif; }
+.brand-tagline { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); font-family: system-ui, sans-serif; }
+
+header.site {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.nav-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; gap: 16px; flex-wrap: wrap; }
+nav.main { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; font-family: system-ui, sans-serif; font-size: 0.95rem; }
+nav.main a { text-decoration: none; color: var(--ink); }
+nav.main a:hover, nav.main a[aria-current="page"] { color: var(--green); }
+
+.btn {
+  display: inline-block; border-radius: 8px; padding: 10px 18px;
+  font-family: system-ui, sans-serif; font-size: 0.95rem; cursor: pointer;
+  border: 1px solid transparent; text-decoration: none; text-align: center;
+}
+.btn-primary { background: #006b3f; color: #ffffff; }
+.btn-primary:hover { background: #005834; }
+.btn-outline { background: transparent; color: var(--green); border-color: var(--green); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.hero { padding: 72px 0 48px; }
+.hero h1 { font-size: clamp(1.9rem, 4.5vw, 3.2rem); margin: 0 0 12px; color: var(--green-deep); }
+.hero p.lede { font-size: 1.15rem; color: var(--muted); max-width: 640px; }
+.motto { font-family: system-ui, sans-serif; letter-spacing: 0.22em; text-transform: uppercase; font-size: 0.8rem; color: var(--green); margin-top: 18px; }
+
+.modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; padding: 28px 0 48px; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px;
+}
+.card h3 { margin-top: 0; color: var(--green-deep); }
+
+.badge {
+  display: inline-block; font-family: system-ui, sans-serif; font-size: 0.72rem;
+  padding: 3px 10px; border-radius: 999px; letter-spacing: 0.04em;
+}
+.badge-live { background: var(--green-light); color: #006b3f; }
+.badge-soon { background: var(--warn-bg); color: #7a5a00; border: 1px solid var(--warn-border); }
+
+.notice {
+  background: var(--warn-bg); border: 1px solid var(--warn-border);
+  border-radius: 10px; padding: 14px 18px; margin: 18px 0; font-size: 0.95rem;
+}
+
+form.auth-form { max-width: 420px; margin: 40px auto; display: grid; gap: 16px; }
+label { font-family: system-ui, sans-serif; font-size: 0.9rem; display: grid; gap: 6px; }
+input, select {
+  padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 1rem; background: var(--card); color: var(--ink);
+}
+.error-text { color: var(--danger); font-family: system-ui, sans-serif; font-size: 0.9rem; }
+.success-text { color: #006b3f; font-family: system-ui, sans-serif; font-size: 0.9rem; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 760px) { .grid-2 { grid-template-columns: 2fr 1fr; } }
+
+table.list { width: 100%; border-collapse: collapse; font-family: system-ui, sans-serif; font-size: 0.92rem; }
+table.list th, table.list td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+
+footer.site {
+  margin-top: 64px; padding: 28px 0; border-top: 1px solid var(--border);
+  color: var(--muted); font-size: 0.88rem; font-family: system-ui, sans-serif;
+}
+
+.page-title { color: var(--green-deep); }
+pre.text-extract {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; white-space: pre-wrap; font-size: 0.85rem; max-height: 300px; overflow: auto;
+}

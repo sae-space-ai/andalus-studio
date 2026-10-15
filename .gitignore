@@ -1,12 +1,11 @@
 # Dependencies
 node_modules/
-.pnpm-store/
 
 # Build
 dist/
 build/
 
-# Environment
+# Environment (nunca commitear secretos)
 .env
 .env.local
 .env.*.local
@@ -23,19 +22,15 @@ Thumbs.db
 
 # Logs
 *.log
-npm-debug.log*
-pnpm-debug.log*
 
 # Testing
 coverage/
 test-results/
 playwright-report/
 
-# Prisma
-prisma/*.db
-prisma/migrations/*/migration_lock.toml
+# Datos locales de desarrollo
+storage-dev/
+*.sqlite
 
 # Misc
-*.tgz
 .cache/
-.next/
