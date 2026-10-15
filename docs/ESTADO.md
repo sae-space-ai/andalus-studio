@@ -1,27 +1,30 @@
 # ESTADO — Andalus Studio
 
-## Fecha última actualización: FASE 04 implementada (con limitaciones)
+## Fecha última actualización: FASE 05 implementada (con limitaciones documentadas)
 
 ### Estado general
 
 | Componente | Estado | Notas |
 |-----------|--------|-------|
-| Documentación | ✅ COMPLETO | Todos los docs FASE 00, 01, 02, 03 y 04 |
+| Documentación | ✅ COMPLETO | Todos los docs FASE 00-05 |
 | Modelo de datos | ✅ ACTUALIZADO | Schema Prisma con sistema comercial completo |
 | Contratos API | ✅ IMPLEMENTADOS | Endpoints de auth, billing, créditos |
 | Backend Fastify | ✅ IMPLEMENTADO | Código completo, pendiente de ejecución |
 | Autenticación | ✅ IMPLEMENTADA | Registro, login, verificación, recuperación |
 | Sesiones | ✅ IMPLEMENTADAS | Cookies HttpOnly, revocación |
 | Seguridad | ✅ IMPLEMENTADA | Argon2id, CSRF, rate limiting |
-| Calculadora MIDI | ✅ IMPLEMENTADA | Primera herramienta verificable |
 | Sistema Comercial | ✅ IMPLEMENTADO | Stripe TEST, suscripciones, créditos |
 | Ledger de Créditos | ✅ IMPLEMENTADO | Inmutable, atómico, reconciliable |
 | Webhooks Stripe | ✅ IMPLEMENTADOS | Verificación de firma, idempotencia |
 | Cliente API | ✅ IMPLEMENTADO | Frontend listo para conectar con backend |
-| Tool SDK | ⚠️ PARCIAL | Tipos diseñados, integración incompleta |
-| Calculadora Intervalos | ✅ IMPLEMENTADA | Herramienta determinista |
-| Calculadora Duración | ✅ IMPLEMENTADA | Herramienta determinista |
-| Tests | ✅ CREADOS | 72+ tests totales, no ejecutados |
+| Auditoría Catálogo | ✅ COMPLETA | Matriz de 23 herramientas documentada |
+| Calculadora MIDI | ✅ IMPLEMENTADA | Motor funcional, certificada |
+| Calculadora BPM | ✅ IMPLEMENTADA | Tap tempo, certificada |
+| Metrónomo | ✅ IMPLEMENTADO | Web Audio API, certificado |
+| Afinador | ✅ IMPLEMENTADO | Autocorrelación, certificado |
+| Calculadora Intervalos | ✅ IMPLEMENTADA | Teoría musical, certificada |
+| Herramientas Bloqueadas | ❌ 18 BLOQUEADAS | Requieren IA/DSP/APIs externas |
+| Tests | ✅ CREADOS | 96+ tests totales, no ejecutados |
 | Frontend conectado | ⏳ PENDIENTE | Cliente API creado, páginas por conectar |
 | PostgreSQL | ⏳ PENDIENTE | No disponible en este entorno |
 | Stripe TEST | ⏳ PENDIENTE | Requiere configuración |

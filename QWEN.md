@@ -27,9 +27,9 @@
 - **Pagos (previsto):** Stripe TEST → LIVE tras aprobación humana
 - **Tests (previsto):** Vitest + Playwright
 
-## Estado actual: FASE 04 IMPLEMENTADA (con limitaciones)
+## Estado actual: FASE 05 IMPLEMENTADA (con limitaciones documentadas)
 
-Cliente API centralizado implementado para conectar frontend con backend. Auditoría de integridad completada (repositorio íntegro). Tool SDK diseñado con tipos completos. 3 herramientas deterministas implementadas (calculadora MIDI, intervalos, duración). Herramientas calculadoras listas para certificación. Frontend preparado para conectarse con backend real. Tool SDK parcialmente integrado (conflictos de tipos con FASE 01 requieren refactorización). PostgreSQL y ejecución de tests pendientes.
+Auditoría exhaustiva del catálogo completada. 5 herramientas con motores reales implementadas (Calculadora MIDI, Calculadora de BPM, Metrónomo, Afinador, Calculadora de Intervalos). 18 herramientas bloqueadas por complejidad técnica (requieren IA, DSP avanzado, APIs externas). 16 herramientas nunca fueron registradas en el código. Documentación honesta de limitaciones y bloqueos. Build exitoso.
 
 ## Reglas permanentes
 

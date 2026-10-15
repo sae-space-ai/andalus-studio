@@ -79,6 +79,23 @@
 - [ ] Artefactos y descargas
 - [ ] Tests ejecutados
 
+## FASE 05 — Integración de motores reales ⚠️ IMPLEMENTADA CON LIMITACIONES DOCUMENTADAS
+- [x] Auditoría exhaustiva del catálogo (23 herramientas)
+- [x] Matriz de motores documentada
+- [x] Calculadora MIDI implementada y certificada
+- [x] Calculadora de BPM implementada (tap tempo)
+- [x] Metrónomo implementado (Web Audio API)
+- [x] Afinador implementado (autocorrelación)
+- [x] Calculadora de intervalos implementada
+- [x] Documentación de bloqueos (18 herramientas)
+- [x] Análisis de viabilidad completado
+- [x] Tests para herramientas implementadas
+- [x] Build exitoso
+- [ ] 18 herramientas bloqueadas (requieren IA/DSP/APIs)
+- [ ] 16 herramientas nunca registradas en código
+- [ ] Tests ejecutados (requieren PostgreSQL)
+- [ ] Frontend conectado a herramientas
+
 ## FASE 03 — Pagos Stripe TEST
 - [ ] Integración Stripe (modo TEST)
 - [ ] Checkout sessions

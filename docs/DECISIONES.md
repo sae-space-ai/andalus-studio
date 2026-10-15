@@ -130,3 +130,27 @@
 - **Razón:** Evitar conflictos de tipos y romper código existente.
 - **Resultado:** Conflictos encontrados, se requiere refactorización adicional.
 - **Fecha:** FASE 04
+
+### DEC-026: Documentación honesta de limitaciones
+- **Decisión:** Documentar honestamente que solo 5 de 23 herramientas tienen motores implementados.
+- **Razón:** Transparencia con el usuario, no inventar integraciones inexistentes.
+- **Resultado:** Matriz de motores y análisis de bloqueos completados.
+- **Fecha:** FASE 05
+
+### DEC-027: Implementar solo herramientas deterministas factibles
+- **Decisión:** Implementar motores para herramientas matemáticas/deterministas sin dependencias externas complejas.
+- **Razón:** Maximizar herramientas funcionales con recursos disponibles.
+- **Resultado:** 5 herramientas implementadas (MIDI, BPM, Metrónomo, Afinador, Intervalos).
+- **Fecha:** FASE 05
+
+### DEC-028: No inventar motores para herramientas complejas
+- **Decisión:** No implementar motores falsos para herramientas que requieren IA, DSP avanzado o APIs externas.
+- **Razón:** Filosofía del proyecto: "Una herramienta. Una promesa. Un resultado verificado."
+- **Resultado:** 18 herramientas documentadas como bloqueadas con análisis de viabilidad.
+- **Fecha:** FASE 05
+
+### DEC-029: Web Audio API para herramientas de audio en navegador
+- **Decisión:** Usar Web Audio API para metrónomo y afinador.
+- **Razón:** Permite procesamiento de audio en navegador sin dependencias externas.
+- **Resultado:** Metrónomo con scheduling preciso y afinador con autocorrelación implementados.
+- **Fecha:** FASE 05
